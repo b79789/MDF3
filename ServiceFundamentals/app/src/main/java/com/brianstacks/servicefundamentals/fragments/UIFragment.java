@@ -91,7 +91,7 @@ public class UIFragment extends Fragment {
     public void onActivityCreated(Bundle savedInstance){
         super.onActivityCreated(savedInstance);
 
-        final Intent intent = new Intent(getActivity(), MusicPlayerService.class);
+         Intent intent = new Intent(getActivity(), MusicPlayerService.class);
 
         // get an instance of my xml elements
         Button mStartService = (Button)getActivity().findViewById(R.id.startService);
@@ -104,8 +104,9 @@ public class UIFragment extends Fragment {
         mStartService.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Intent intent = new Intent(getActivity(), MusicPlayerService.class);
+
                 getActivity().startService(intent);
-                getActivity().bindService(intent,mConnection,Context.BIND_AUTO_CREATE);
             }
         });
         mStopService.setOnClickListener(new View.OnClickListener() {
@@ -167,6 +168,7 @@ public class UIFragment extends Fragment {
     @Override
     public void onPause() {
         super.onPause();
+
         if (mBound ){
             getActivity().unbindService(mConnection);
             mBound=false;
@@ -177,15 +179,15 @@ public class UIFragment extends Fragment {
     @Override
     public void onResume(){
         super.onResume();
-            getActivity().bindService(getActivity().getIntent(), mConnection, Context.BIND_AUTO_CREATE);
-            mBound=true;
+         Intent intent = new Intent(getActivity(), MusicPlayerService.class);
 
+        getActivity().bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
 
     }
 
 
 
-    private final Handler mHandler = new Handler();
+  /*  private final Handler mHandler = new Handler();
 
 
     public class DataReceiver extends ResultReceiver {
@@ -201,7 +203,7 @@ public class UIFragment extends Fragment {
                 mTextView.setText(resultData.getString(DATA_RETURNED, "works"));
             }
         }
-    }
+    }*/
 
 
 
