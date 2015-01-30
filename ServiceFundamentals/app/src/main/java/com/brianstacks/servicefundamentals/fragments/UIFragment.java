@@ -36,26 +36,10 @@ public class UIFragment extends Fragment {
     public static final String TAG = "UIFragment.TAG";
     public static final String DATA_RETURNED = "MainActivity.DATA_RETURNED";
     public static final int RESULT_DATA_RETURNED = 0x0101010;
-
-    Button mPlay;
-    Button mPause;
-    Button mStop;
-    Button mSkipF;
-    Button mSkipB;
-    Button mStartService;
-    Button mStopService;
+    public static final String RC_INTENT = "com.brianstacks..servicefundamentals.RC_INTENT";
+    public static final String DATA_REC = "receiver";
     MusicPlayerService musicPlayerService;
-
-    public static  ServiceConnection mConnection;
     boolean mBound = false;
-    TextView mTextView;
-    DataReceiver resultReceiver;
-
-
-    public UIFragment() {
-        // Required empty public constructor
-    }
-
 
     public static UIFragment newInstance() {
         UIFragment fragment = new UIFragment();
@@ -64,12 +48,32 @@ public class UIFragment extends Fragment {
         return fragment;
     }
 
+    public UIFragment() {
+        // Required empty public constructor
+    }
+
+    public ServiceConnection mConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+
+            MusicPlayerService.BoundServiceBinder binder = (MusicPlayerService.BoundServiceBinder) service;
+            musicPlayerService= binder.getService();
+            mBound = true;
+            Toast.makeText(getActivity(), "Connected", Toast.LENGTH_SHORT).show();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+
+            mBound = false;
+            Toast.makeText(getActivity(), "Disconnected" + name.toString(), Toast.LENGTH_SHORT).show();
+        }
+    };
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        resultReceiver = new DataReceiver();
-        Intent intent = new Intent(getActivity(), MusicPlayerService.class);
-        intent.putExtra("receiver", resultReceiver);
+
     }
 
     @Override
@@ -82,35 +86,26 @@ public class UIFragment extends Fragment {
     @Override
     public void onActivityCreated(Bundle savedInstance){
         super.onActivityCreated(savedInstance);
+
         // get an instance of my xml elements
-        mStartService = (Button)getActivity().findViewById(R.id.startService);
-        mPlay= (Button)getActivity().findViewById(R.id.playButton);
-        mPause= (Button)getActivity().findViewById(R.id.pauseButton);
-        mStop= (Button)getActivity().findViewById(R.id.stopButton);
-        mSkipF = (Button)getActivity().findViewById(R.id.skipForward);
-        mSkipB= (Button)getActivity().findViewById(R.id.skipBack);
-        mStopService= (Button)getActivity().findViewById(R.id.stopService);
-        mTextView=(TextView)getActivity().findViewById(R.id.trackText);
-
-        // create an intent
-        final Intent intent = new Intent(getActivity(), MusicPlayerService.class);
-        intent.putExtra(DATA_RETURNED, new DataReceiver());
-
+        Button mStartService = (Button)getActivity().findViewById(R.id.startService);
+        Button mPlay= (Button)getActivity().findViewById(R.id.playButton);
+        Button mPause= (Button)getActivity().findViewById(R.id.pauseButton);
+        Button mStop= (Button)getActivity().findViewById(R.id.stopButton);
+        Button mSkipF = (Button)getActivity().findViewById(R.id.skipForward);
+        Button mSkipB= (Button)getActivity().findViewById(R.id.skipBack);
+        Button mStopService= (Button)getActivity().findViewById(R.id.stopService);
         mStartService.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                getActivity().bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+                final Intent intent = new Intent(getActivity(), MusicPlayerService.class);
+                getActivity().bindService(intent,mConnection,Context.BIND_AUTO_CREATE);
             }
         });
         mStopService.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(getActivity(), MusicPlayerService.class);
                 getActivity().unbindService(mConnection);
-                musicPlayerService.stopService(intent);
-                Toast.makeText(getActivity(), "Stopped it", Toast.LENGTH_SHORT).show();
-
             }
         });
         mPlay.setOnClickListener(new View.OnClickListener() {
@@ -126,68 +121,64 @@ public class UIFragment extends Fragment {
         mPause.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                musicPlayerService.onPause();
+                if (mBound) {
+                    musicPlayerService.onPause();
+                }
 
             }
         });
         mStop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                musicPlayerService.onStop();
+                if (mBound) {
+                    musicPlayerService.onStop();
+                }
             }
         });
         mSkipF.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                musicPlayerService.onSkipForward();
+                if (mBound) {
+                    musicPlayerService.onSkipForward();
+                }
             }
         });
         mSkipB.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                musicPlayerService.onSkipback();
+                if (mBound) {
+                    musicPlayerService.onSkipback();
+                }
             }
         });
-        mConnection = new ServiceConnection() {
-            @Override
-            public void onServiceConnected(ComponentName name, IBinder service) {
 
-                MusicPlayerService.BoundServiceBinder binder = (MusicPlayerService.BoundServiceBinder) service;
-                musicPlayerService= binder.getService();
-                mBound = true;
 
-            }
-
-            @Override
-            public void onServiceDisconnected(ComponentName name) {
-                mBound = false;
-            }
-        };
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        // Unbind from the service
-        if (mBound) {
+        if (mBound ){
             getActivity().unbindService(mConnection);
-            mBound = false;
+            mBound=false;
         }
-    }
 
+    }
 
     @Override
-    public void onResume() {
+    public void onResume(){
         super.onResume();
-        // Bind to LocalService
-        Intent intent = new Intent(getActivity().getApplicationContext(), MusicPlayerService.class);
-        intent.putExtra("receiver", resultReceiver);
-        getActivity().bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+        if (!mBound){
+            getActivity().bindService(getActivity().getIntent(), mConnection, Context.BIND_AUTO_CREATE);
+            mBound=true;
+        }
 
     }
+
 
 
     private final Handler mHandler = new Handler();
+
 
     public class DataReceiver extends ResultReceiver {
         public DataReceiver() {
@@ -198,10 +189,12 @@ public class UIFragment extends Fragment {
         protected void onReceiveResult(int resultCode, Bundle resultData) {
 
             if(resultData != null && resultData.containsKey(DATA_RETURNED)) {
+                TextView mTextView=(TextView)getActivity().findViewById(R.id.trackText);
                 mTextView.setText(resultData.getString(DATA_RETURNED, "works"));
             }
         }
     }
+
 
 
 

@@ -1,8 +1,12 @@
 package com.brianstacks.servicefundamentals.services;
 
+import android.app.Notification;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.net.Uri;
@@ -10,6 +14,7 @@ import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.ResultReceiver;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -56,13 +61,15 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnPrepare
     }
 
 
-    public void onCreate() {
 
+
+    public void onCreate() {
         super.onCreate();
         Log.d("LOG", "Service Started!");
         mManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 
 
+        showNotification();
         Collections.addAll(trackList, tracks);
         Uri file = Uri.parse(tracks[this.currentTrack]);
         if (mPlayer == null ){
@@ -83,12 +90,18 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnPrepare
     public int onStartCommand(Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
 
-        if(intent.hasExtra(UIFragment.DATA_RETURNED)) {
+        /*if(intent.hasExtra(UIFragment.DATA_RETURNED)) {
             ResultReceiver receiver = (ResultReceiver)intent.getParcelableExtra(UIFragment.DATA_RETURNED);
             Bundle result = new Bundle();
             result.putString(UIFragment.DATA_RETURNED,"Artist" +" "+"Title:::" );
             receiver.send(UIFragment.RESULT_DATA_RETURNED, result);
-        }
+            mPlayer.setOnPreparedListener(this);
+            mPlayer.setOnCompletionListener(this);
+            mPlayer.setOnErrorListener(this);
+        }else*/
+
+
+
         mPlayer.setOnPreparedListener(this);
         mPlayer.setOnCompletionListener(this);
         mPlayer.setOnErrorListener(this);
@@ -138,6 +151,7 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnPrepare
             mPlayer.stop();
         }
         stopForeground(true);
+        mManager.cancel(NOTIFICATION_ID);
     }
 
     public void onPause() {
@@ -201,5 +215,24 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnPrepare
     public void showTrackInfo() {
         //TextView trackText = (TextView)
 
+    }
+
+    /**
+     * Show a notification while this service is running.
+     */
+    private void showNotification() {
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
+        builder.setSmallIcon(R.drawable.heavens_small);
+        builder.setLargeIcon(BitmapFactory.decodeResource(
+                getResources(), R.drawable.heavens));
+        builder.setContentTitle("Standard Title");
+        builder.setContentText("Standard Message");
+
+        // The PendingIntent to launch our activity if the user selects this notification
+        PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
+                new Intent(this, MainActivity.class), 0);
+        builder.setContentIntent(contentIntent);
+        mManager.notify(NOTIFICATION_ID, builder.build());
     }
 }

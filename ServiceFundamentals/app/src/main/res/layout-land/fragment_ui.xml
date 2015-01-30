@@ -4,15 +4,10 @@
     android:orientation="vertical"
     tools:context="com.brianstacks.servicefundamentals.MusicControlsFragment">
 
-
-    <TextView
-        android:id="@+id/trackText"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"/>
     <LinearLayout
         android:id="@+id/layout1"
-        android:orientation="vertical"
-        android:layout_width="match_parent"
+        android:orientation="horizontal"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content">
         <Button
             android:id="@+id/startService"
@@ -20,30 +15,46 @@
             android:layout_height="wrap_content"
             android:text="Start Service"/>
         <Button
+            android:textColor="@android:color/holo_blue_bright"
             android:id="@+id/playButton"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:text="Play"/>
         <Button
             android:id="@+id/pauseButton"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:text="Pause"/>
         <Button
             android:id="@+id/stopButton"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:text="Stop"/>
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
         <Button
             android:id="@+id/skipForward"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:text="Skip Forward"/>
         <Button
             android:id="@+id/skipBack"
-            android:layout_width="fill_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:text="Skip Back"/>
+        <Button
+            android:id="@+id/exitApp"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:text="Close App"/>
         <Button
             android:id="@+id/stopService"
             android:layout_width="match_parent"
@@ -51,5 +62,30 @@
             android:text="Stop Service"/>
     </LinearLayout>
 
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="Loop"/>
+        <ToggleButton
+            android:id="@+id/loopButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="Shuffle"/>
+        <ToggleButton
+            android:id="@+id/randButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+    </LinearLayout>
+    <TextView
+        android:id="@+id/trackText"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"/>
 
 </LinearLayout>
