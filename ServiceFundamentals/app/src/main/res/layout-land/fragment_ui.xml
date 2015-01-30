@@ -1,0 +1,55 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.brianstacks.servicefundamentals.MusicControlsFragment">
+
+
+    <TextView
+        android:id="@+id/trackText"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"/>
+    <LinearLayout
+        android:id="@+id/layout1"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <Button
+            android:id="@+id/startService"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Start Service"/>
+        <Button
+            android:id="@+id/playButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Play"/>
+        <Button
+            android:id="@+id/pauseButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Pause"/>
+        <Button
+            android:id="@+id/stopButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Stop"/>
+        <Button
+            android:id="@+id/skipForward"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Skip Forward"/>
+        <Button
+            android:id="@+id/skipBack"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="Skip Back"/>
+        <Button
+            android:id="@+id/stopService"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Stop Service"/>
+    </LinearLayout>
+
+
+</LinearLayout>
