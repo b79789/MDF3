@@ -1,13 +1,17 @@
+/**
+ *Created by Brian Stacks
+ on 1/27/15
+ for FullSail.edu.
+ */
 package com.brianstacks.servicefundamentals.services;
 
-import android.app.Notification;
+
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Binder;
@@ -22,21 +26,16 @@ import com.brianstacks.servicefundamentals.MainActivity;
 import com.brianstacks.servicefundamentals.R;
 import com.brianstacks.servicefundamentals.fragments.UIFragment;
 
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 
-/**
- * Created by Brian Stacks
- * on 1/27/15
- * for FullSail.edu.
- */
+
 public class MusicPlayerService extends Service implements MediaPlayer.OnPreparedListener,MediaPlayer.OnCompletionListener,MediaPlayer.OnErrorListener{
 
     private static final String DEBUG_TAG = "MusicPlayerService";
     public static final int NOTIFICATION_ID = 0x01001;
-    MediaPlayer mPlayer;
+    public MediaPlayer mPlayer;
     ArrayList<String> trackList=new ArrayList<>();
     NotificationManager mManager;
     private int currentTrack = 0;
@@ -61,6 +60,10 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnPrepare
     }
 
 
+    @Override
+    public boolean onUnbind(Intent intent) {
+        return false;
+    }
 
 
     public void onCreate() {
@@ -69,21 +72,14 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnPrepare
         mManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 
 
-        showNotification();
-        Collections.addAll(trackList, tracks);
-        Uri file = Uri.parse(tracks[this.currentTrack]);
-        if (mPlayer == null ){
-            try {
-                mPlayer = new MediaPlayer();
-                mPlayer.setDataSource(this, file);
-                mPlayer.prepareAsync();
-                mPlayer.setOnPreparedListener(this);
-                mPlayer.setOnCompletionListener(this);
-                mPlayer.setOnErrorListener(this);
-            } catch (Exception e) {
-                Log.e(DEBUG_TAG, "Player failed", e);
-            }
-        }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Log.d(DEBUG_TAG, "In onDestroy.");
+        mPlayer.release();
+        stopForeground(true);
     }
 
     @Override
@@ -101,6 +97,49 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnPrepare
         }else*/
 
 
+        Collections.addAll(trackList, tracks);
+        Uri file = Uri.parse(tracks[this.currentTrack]);
+        if (mPlayer == null ){
+            try {
+                mPlayer = new MediaPlayer();
+                mPlayer.setDataSource(this, file);
+                mPlayer.prepareAsync();
+                mPlayer.setOnPreparedListener(this);
+                mPlayer.setOnCompletionListener(this);
+                mPlayer.setOnErrorListener(this);
+            } catch (Exception e) {
+                Log.e(DEBUG_TAG, "Player failed", e);
+            }
+        }if(intent.hasExtra(UIFragment.DATA_REC)) {
+            ResultReceiver receiver = (ResultReceiver) intent.getParcelableExtra(UIFragment.DATA_REC);
+            Bundle result = new Bundle();
+            result.putString(UIFragment.DATA_RETURNED, "Artist" + " " + "Title");
+            receiver.send(UIFragment.RESULT_DATA_RETURNED, result);
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext());
+            Intent mainIntent = new Intent(this, MainActivity.class);
+            mainIntent.setAction(Intent.ACTION_MAIN);
+            mainIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+            PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, mainIntent, 0);
+            builder.setContentIntent(pendingIntent);
+            builder.setSmallIcon(R.drawable.heavens_small);
+            builder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.heavens));
+            builder.setContentTitle("Artist");
+            builder.setContentText("Title");
+            builder.setNumber(currentTrack);
+            NotificationCompat.BigPictureStyle bigStyle = new NotificationCompat.BigPictureStyle();
+            bigStyle.setSummaryText("This expanded notification is brought to you by StacksMobile");
+            bigStyle.setBigContentTitle("Artist");
+            bigStyle.setSummaryText("Title");
+            Bitmap bigPic = BitmapFactory.decodeResource(getResources(), R.drawable.bs);
+            bigStyle.bigPicture(bigPic);
+            builder.setStyle(bigStyle);
+            builder.setAutoCancel(false);
+            builder.setOngoing(true);
+            startForeground(NOTIFICATION_ID, builder.build());
+            mManager.notify(NOTIFICATION_ID, builder.build());
+            builder.setContentTitle("Artist");
+            mManager.notify(NOTIFICATION_ID, builder.build());
+        }
 
         mPlayer.setOnPreparedListener(this);
         mPlayer.setOnCompletionListener(this);
@@ -143,16 +182,7 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnPrepare
     }
 
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        Log.d(DEBUG_TAG, "In onDestroy.");
-        if(mPlayer != null) {
-            mPlayer.stop();
-        }
-        stopForeground(true);
-        mManager.cancel(NOTIFICATION_ID);
-    }
+
 
     public void onPause() {
         mPlayer.pause();
@@ -217,22 +247,5 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnPrepare
 
     }
 
-    /**
-     * Show a notification while this service is running.
-     */
-    private void showNotification() {
 
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
-        builder.setSmallIcon(R.drawable.heavens_small);
-        builder.setLargeIcon(BitmapFactory.decodeResource(
-                getResources(), R.drawable.heavens));
-        builder.setContentTitle("Standard Title");
-        builder.setContentText("Standard Message");
-
-        // The PendingIntent to launch our activity if the user selects this notification
-        PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
-                new Intent(this, MainActivity.class), 0);
-        builder.setContentIntent(contentIntent);
-        mManager.notify(NOTIFICATION_ID, builder.build());
-    }
 }

@@ -52,7 +52,8 @@ public class UIFragment extends Fragment {
         // Required empty public constructor
     }
 
-    public ServiceConnection mConnection = new ServiceConnection() {
+
+    private ServiceConnection mConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
 
@@ -70,9 +71,12 @@ public class UIFragment extends Fragment {
         }
     };
 
+
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
 
     }
 
@@ -87,6 +91,8 @@ public class UIFragment extends Fragment {
     public void onActivityCreated(Bundle savedInstance){
         super.onActivityCreated(savedInstance);
 
+        final Intent intent = new Intent(getActivity(), MusicPlayerService.class);
+
         // get an instance of my xml elements
         Button mStartService = (Button)getActivity().findViewById(R.id.startService);
         Button mPlay= (Button)getActivity().findViewById(R.id.playButton);
@@ -98,14 +104,18 @@ public class UIFragment extends Fragment {
         mStartService.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                final Intent intent = new Intent(getActivity(), MusicPlayerService.class);
+                getActivity().startService(intent);
                 getActivity().bindService(intent,mConnection,Context.BIND_AUTO_CREATE);
             }
         });
         mStopService.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                getActivity().unbindService(mConnection);
+                if (mBound){
+                    getActivity().unbindService(mConnection);
+                    getActivity().stopService(getActivity().getIntent());
+                }
+                Toast.makeText(getActivity(),"Not Bound",Toast.LENGTH_SHORT).show();
             }
         });
         mPlay.setOnClickListener(new View.OnClickListener() {
@@ -152,7 +162,6 @@ public class UIFragment extends Fragment {
             }
         });
 
-
     }
 
     @Override
@@ -168,10 +177,9 @@ public class UIFragment extends Fragment {
     @Override
     public void onResume(){
         super.onResume();
-        if (!mBound){
             getActivity().bindService(getActivity().getIntent(), mConnection, Context.BIND_AUTO_CREATE);
             mBound=true;
-        }
+
 
     }
 
@@ -194,6 +202,7 @@ public class UIFragment extends Fragment {
             }
         }
     }
+
 
 
 
