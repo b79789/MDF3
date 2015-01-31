@@ -90,9 +90,6 @@ public class UIFragment extends Fragment {
     @Override
     public void onActivityCreated(Bundle savedInstance){
         super.onActivityCreated(savedInstance);
-
-         Intent intent = new Intent(getActivity(), MusicPlayerService.class);
-
         // get an instance of my xml elements
         Button mStartService = (Button)getActivity().findViewById(R.id.startService);
         Button mPlay= (Button)getActivity().findViewById(R.id.playButton);
@@ -105,6 +102,7 @@ public class UIFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(getActivity(), MusicPlayerService.class);
+                intent.putExtra(RC_INTENT,new DataReceiver());
 
                 getActivity().startService(intent);
             }
@@ -187,7 +185,7 @@ public class UIFragment extends Fragment {
 
 
 
-  /*  private final Handler mHandler = new Handler();
+    private final Handler mHandler = new Handler();
 
 
     public class DataReceiver extends ResultReceiver {
@@ -203,7 +201,7 @@ public class UIFragment extends Fragment {
                 mTextView.setText(resultData.getString(DATA_RETURNED, "works"));
             }
         }
-    }*/
+    }
 
 
 

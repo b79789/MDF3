@@ -13,11 +13,15 @@ import android.graphics.BitmapFactory;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Binder;
+import android.os.Bundle;
 import android.os.IBinder;
+import android.os.ResultReceiver;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.widget.Toast;
 import com.brianstacks.servicefundamentals.R;
+import com.brianstacks.servicefundamentals.fragments.UIFragment;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -63,6 +67,12 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnPrepare
         Log.d("LOG", "Service Started!");
         mManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext());
+        builder.setContentTitle("Artist");
+        builder.setContentText("Title");
+        builder.setSmallIcon(R.drawable.heavens_small);
+        builder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.heavens));
+        startForeground(NOTIFICATION_ID,builder.build());
         Collections.addAll(trackList, tracks);
         Uri file = Uri.parse(tracks[this.currentTrack]);
         if (mPlayer == null ){
@@ -90,32 +100,22 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnPrepare
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
-
-        /*if(intent.hasExtra(UIFragment.DATA_RETURNED)) {
-            ResultReceiver receiver = (ResultReceiver)intent.getParcelableExtra(UIFragment.DATA_RETURNED);
+        if(intent.hasExtra(UIFragment.RC_INTENT)) {
+            Toast.makeText(getApplicationContext(),"WE hit the receiver",Toast.LENGTH_SHORT).show();
+            ResultReceiver receiver = intent.getParcelableExtra(UIFragment.RC_INTENT);
             Bundle result = new Bundle();
             result.putString(UIFragment.DATA_RETURNED,"Artist" +" "+"Title:::" );
             receiver.send(UIFragment.RESULT_DATA_RETURNED, result);
             mPlayer.setOnPreparedListener(this);
             mPlayer.setOnCompletionListener(this);
             mPlayer.setOnErrorListener(this);
-        }else*/
-
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext());
-        builder.setSmallIcon(R.drawable.heavens_small);
-        builder.setLargeIcon(BitmapFactory.decodeResource(
-                getResources(), R.drawable.heavens));
-        builder.setContentTitle("Artist");
-        builder.setContentText("Title");
-        startForeground(NOTIFICATION_ID,builder.build());
-        mManager.notify(NOTIFICATION_ID, builder.build());
+        }else {
+            mPlayer.setOnPreparedListener(this);
+            mPlayer.setOnCompletionListener(this);
+            mPlayer.setOnErrorListener(this);
+        }
 
 
-
-
-        mPlayer.setOnPreparedListener(this);
-        mPlayer.setOnCompletionListener(this);
-        mPlayer.setOnErrorListener(this);
         return START_STICKY;
     }
 
