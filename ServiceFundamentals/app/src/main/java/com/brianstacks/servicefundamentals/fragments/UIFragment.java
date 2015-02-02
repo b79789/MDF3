@@ -37,7 +37,6 @@ public class UIFragment extends Fragment {
     public static final String DATA_RETURNED = "MainActivity.DATA_RETURNED";
     public static final int RESULT_DATA_RETURNED = 0x0101010;
     public static final String RC_INTENT = "com.brianstacks..servicefundamentals.RC_INTENT";
-    public static final String DATA_REC = "receiver";
     MusicPlayerService musicPlayerService;
     boolean mBound = false;
 
@@ -60,7 +59,6 @@ public class UIFragment extends Fragment {
             MusicPlayerService.BoundServiceBinder binder = (MusicPlayerService.BoundServiceBinder) service;
             musicPlayerService= binder.getService();
             mBound = true;
-            Toast.makeText(getActivity(), "Connected", Toast.LENGTH_SHORT).show();
         }
 
         @Override
@@ -103,18 +101,13 @@ public class UIFragment extends Fragment {
             public void onClick(View v) {
                 Intent intent = new Intent(getActivity(), MusicPlayerService.class);
                 intent.putExtra(RC_INTENT,new DataReceiver());
-
                 getActivity().startService(intent);
             }
         });
         mStopService.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mBound){
-                    getActivity().unbindService(mConnection);
-                    getActivity().stopService(getActivity().getIntent());
-                }
-                Toast.makeText(getActivity(),"Not Bound",Toast.LENGTH_SHORT).show();
+                getActivity().stopService(getActivity().getIntent());
             }
         });
         mPlay.setOnClickListener(new View.OnClickListener() {
@@ -178,7 +171,7 @@ public class UIFragment extends Fragment {
     public void onResume(){
         super.onResume();
          Intent intent = new Intent(getActivity(), MusicPlayerService.class);
-
+         intent.putExtra(RC_INTENT,new DataReceiver());
         getActivity().bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
 
     }

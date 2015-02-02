@@ -27,7 +27,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 
-public class MusicPlayerService extends Service implements MediaPlayer.OnPreparedListener,MediaPlayer.OnCompletionListener,MediaPlayer.OnErrorListener{
+public class MusicPlayerService extends Service implements MediaPlayer.OnErrorListener{
 
     private static final String DEBUG_TAG = "MusicPlayerService";
     public static final int NOTIFICATION_ID = 0x01001;
@@ -52,12 +52,21 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnPrepare
     @Override
     public IBinder onBind(Intent intent) {
         Log.d(DEBUG_TAG, "In onBind with intent=" + intent.getAction());
+        if(intent.hasExtra(UIFragment.RC_INTENT)) {
+            Toast.makeText(getApplicationContext(),"WE hit the receiver",Toast.LENGTH_SHORT).show();
+            ResultReceiver receiver = intent.getParcelableExtra(UIFragment.RC_INTENT);
+            Bundle result = new Bundle();
+            result.putString(UIFragment.DATA_RETURNED,"BOUND" );
+            receiver.send(UIFragment.RESULT_DATA_RETURNED, result);
+        }
+
         return new BoundServiceBinder();
     }
 
 
     @Override
     public boolean onUnbind(Intent intent) {
+
         return false;
     }
 
@@ -70,23 +79,9 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnPrepare
         NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext());
         builder.setContentTitle("Artist");
         builder.setContentText("Title");
-        builder.setSmallIcon(R.drawable.heavens_small);
-        builder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.heavens));
-        startForeground(NOTIFICATION_ID,builder.build());
-        Collections.addAll(trackList, tracks);
-        Uri file = Uri.parse(tracks[this.currentTrack]);
-        if (mPlayer == null ){
-            try {
-                mPlayer = new MediaPlayer();
-                mPlayer.setDataSource(this, file);
-                mPlayer.prepareAsync();
-                mPlayer.setOnPreparedListener(this);
-                mPlayer.setOnCompletionListener(this);
-                mPlayer.setOnErrorListener(this);
-            } catch (Exception e) {
-                Log.e(DEBUG_TAG, "Player failed", e);
-            }
-        }
+
+        startForeground(NOTIFICATION_ID, builder.build());
+
     }
 
     @Override
@@ -100,41 +95,68 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnPrepare
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
-        if(intent.hasExtra(UIFragment.RC_INTENT)) {
+
+        Collections.addAll(trackList, tracks);
+        Uri file = Uri.parse(tracks[this.currentTrack]);
+        if (mPlayer == null ){
+            try {
+                mPlayer = new MediaPlayer();
+                mPlayer.setDataSource(this, file);
+                mPlayer.prepareAsync();
+                if(intent.hasExtra(UIFragment.RC_INTENT)) {
+                    Toast.makeText(getApplicationContext(),"WE hit the receiver",Toast.LENGTH_SHORT).show();
+                    ResultReceiver receiver = intent.getParcelableExtra(UIFragment.RC_INTENT);
+                    Bundle result = new Bundle();
+                    result.putString(UIFragment.DATA_RETURNED,"Artist" +" "+"Title:::" );
+                    receiver.send(UIFragment.RESULT_DATA_RETURNED, result);
+                }
+                mPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+                    @Override
+                    public void onPrepared(MediaPlayer mp) {
+                        mPlayer=mp;
+                        mPlayer.start();
+                    }
+                });
+                mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                    @Override
+                    public void onCompletion(MediaPlayer mp) {
+                        currentTrack = (currentTrack + 1) % tracks.length;
+                        if (currentTrack >= 0) {
+
+                            Uri nextTrack = Uri.parse(tracks[currentTrack]);
+                            mPlayer.reset();
+                            try {
+                                mPlayer.setDataSource(getApplicationContext(), nextTrack);
+
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                            mPlayer.prepareAsync();
+
+                        }
+                    }
+                });
+                mPlayer.setOnErrorListener(this);
+
+            } catch (Exception e) {
+                Log.e(DEBUG_TAG, "Player failed", e);
+            }
+        }else{
+
+            mPlayer.setOnErrorListener(this);
+        }
+
+      if(intent.hasExtra(UIFragment.RC_INTENT)) {
             Toast.makeText(getApplicationContext(),"WE hit the receiver",Toast.LENGTH_SHORT).show();
             ResultReceiver receiver = intent.getParcelableExtra(UIFragment.RC_INTENT);
             Bundle result = new Bundle();
             result.putString(UIFragment.DATA_RETURNED,"Artist" +" "+"Title:::" );
             receiver.send(UIFragment.RESULT_DATA_RETURNED, result);
-            mPlayer.setOnPreparedListener(this);
-            mPlayer.setOnCompletionListener(this);
-            mPlayer.setOnErrorListener(this);
-        }else {
-            mPlayer.setOnPreparedListener(this);
-            mPlayer.setOnCompletionListener(this);
-            mPlayer.setOnErrorListener(this);
         }
-
 
         return START_STICKY;
     }
 
-    @Override
-    public void onCompletion(MediaPlayer mp) {
-
-        currentTrack = (currentTrack + 1) % tracks.length;
-        Uri nextTrack = Uri.parse(tracks[currentTrack]);
-        Log.i("Completion Listener","Song Complete");
-        mPlayer.reset();
-        try {
-            mPlayer.setDataSource(this,nextTrack);
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        mPlayer.prepareAsync();
-
-        }
 
 
     @Override
@@ -142,19 +164,6 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnPrepare
 
         return false;
     }
-
-    @Override
-    public void onPrepared(MediaPlayer mp) {
-
-        mPlayer=mp;
-        mPlayer.setOnPreparedListener(this);
-        mPlayer.setOnCompletionListener(this);
-        mPlayer.setOnErrorListener(this);
-        mPlayer.start();
-    }
-
-
-
 
     public void onPause() {
         mPlayer.pause();
@@ -192,11 +201,8 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnPrepare
     }
 
     public void onSkipback() {
-        Toast.makeText(getApplicationContext(),"In Skip back",Toast.LENGTH_SHORT).show();
-
         currentTrack = (currentTrack - 1) % tracks.length;
-
-        if (currentTrack > 0) {
+        if (currentTrack >= 0) {
             Uri nextTrack = Uri.parse(tracks[currentTrack]);
             mPlayer.reset();
             try {
@@ -207,17 +213,6 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnPrepare
             }
             mPlayer.prepareAsync();
         }
-
     }
-    public void showToast() {
-
-        Toast.makeText(this, "We in here!!", Toast.LENGTH_SHORT).show();
-    }
-
-    public void showTrackInfo() {
-        //TextView trackText = (TextView)
-
-    }
-
 
 }
