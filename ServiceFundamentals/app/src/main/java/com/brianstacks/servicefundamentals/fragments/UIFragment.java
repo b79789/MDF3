@@ -79,10 +79,28 @@ public class UIFragment extends Fragment {
     }
 
     @Override
+     public void onSaveInstanceState(Bundle outState) {
+            super.onSaveInstanceState(outState);
+            Log.v(TAG, "In frag's on save instance state ");
+        TextView mTextView=(TextView)getActivity().findViewById(R.id.trackText);
+
+        outState.putCharSequence("TextviewsText", mTextView.getText());
+        }
+
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_ui, container, false);
+        Log.v(TAG, "In frag's on create view");
+        View view = inflater.inflate(R.layout.fragment_ui, container, false);
+        TextView mTextView=(TextView)view.findViewById(R.id.trackText);
+        if ((savedInstanceState != null)
+             && (savedInstanceState.getSerializable("starttime") != null)) {
+                    mTextView.setText(savedInstanceState.getCharSequence("TextviewsText"));
+            }
+
+        return view;
     }
 
     @Override
@@ -107,7 +125,8 @@ public class UIFragment extends Fragment {
         mStopService.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                getActivity().stopService(getActivity().getIntent());
+                Intent intent = new Intent(getActivity(), MusicPlayerService.class);
+                getActivity().stopService(intent);
             }
         });
         mPlay.setOnClickListener(new View.OnClickListener() {

@@ -2,13 +2,14 @@
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="com.brianstacks.servicefundamentals.MusicControlsFragment">
-
-
+    tools:context="com.brianstacks.servicefundamentals">
     <TextView
         android:id="@+id/trackText"
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textStyle="bold"
+        />
     <LinearLayout
         android:id="@+id/layout1"
         android:orientation="vertical"

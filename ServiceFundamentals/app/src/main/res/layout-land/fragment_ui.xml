@@ -2,7 +2,7 @@
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="com.brianstacks.servicefundamentals.MusicControlsFragment">
+    tools:context="com.brianstacks.servicefundamentals">
     <TextView
         android:id="@+id/trackText"
         android:layout_width="fill_parent"
@@ -19,7 +19,6 @@
             android:layout_height="wrap_content"
             android:text="Start Service"/>
         <Button
-            android:textColor="@android:color/holo_blue_bright"
             android:id="@+id/playButton"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -55,37 +54,10 @@
             android:layout_weight="1"
             android:text="Skip Back"/>
         <Button
-            android:id="@+id/exitApp"
-            android:layout_width="100dp"
-            android:layout_height="wrap_content"
-            android:text="Close App"/>
-        <Button
             android:id="@+id/stopService"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Stop Service"/>
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
-        <TextView
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:text="Loop"/>
-        <ToggleButton
-            android:id="@+id/loopButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
-        <TextView
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:text="Shuffle"/>
-        <ToggleButton
-            android:id="@+id/randButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
     </LinearLayout>
 
 
