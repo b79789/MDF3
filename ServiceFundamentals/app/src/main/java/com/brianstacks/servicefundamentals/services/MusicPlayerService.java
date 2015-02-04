@@ -68,23 +68,30 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
 
     @Override
     public boolean onUnbind(Intent intent) {
+        intent.putExtra(UIFragment.RC_INTENT,intent);
 
         return false;
     }
 
+    @Override
+    public void onRebind(Intent intent) {
+        // A client is binding to the service with bindService(),
+        // after onUnbind() has already been called
+        intent.getExtras();
+    }
 
     public void onCreate() {
         super.onCreate();
-        Log.d("LOG", "Service Started!");
         mManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        Log.d(DEBUG_TAG, "In onDestroy.");
-        mPlayer.release();
         stopForeground(true);
+        if (mPlayer !=null){
+            mPlayer.release();
+        }
     }
 
     @Override
@@ -195,12 +202,7 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
 
         if (mCurrentState==Player_Prepared){
             mPlayer.start();
-        }else {
-            Intent intent = new Intent(getApplicationContext(), MusicPlayerService.class);
-            startService(intent);
-            Log.d("player","was stopped");
-        }
-
+            }
         }
 
     public void onStop()  {
@@ -233,8 +235,6 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
                 e.printStackTrace();
             }
             mPlayer.prepareAsync();
-        }else {
-            Toast.makeText(getApplicationContext(),"At the beginning",Toast.LENGTH_SHORT).show();
         }
     }
 

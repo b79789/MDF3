@@ -39,6 +39,7 @@ public class UIFragment extends Fragment {
     public static final String RC_INTENT = "com.brianstacks..servicefundamentals.RC_INTENT";
     MusicPlayerService musicPlayerService;
     boolean mBound = false;
+    TextView mTextView;
 
     public static UIFragment newInstance() {
         UIFragment fragment = new UIFragment();
@@ -83,8 +84,8 @@ public class UIFragment extends Fragment {
             super.onSaveInstanceState(outState);
             Log.v(TAG, "In frag's on save instance state ");
         TextView mTextView=(TextView)getActivity().findViewById(R.id.trackText);
+        mTextView.setText(outState.getCharSequence("TextviewsText"));
 
-        outState.putCharSequence("TextviewsText", mTextView.getText());
         }
 
 
@@ -95,10 +96,10 @@ public class UIFragment extends Fragment {
         Log.v(TAG, "In frag's on create view");
         View view = inflater.inflate(R.layout.fragment_ui, container, false);
         TextView mTextView=(TextView)view.findViewById(R.id.trackText);
-        if ((savedInstanceState != null)
-             && (savedInstanceState.getSerializable("starttime") != null)) {
+        if(savedInstanceState != null)
+        {
                     mTextView.setText(savedInstanceState.getCharSequence("TextviewsText"));
-            }
+        }
 
         return view;
     }
@@ -182,6 +183,9 @@ public class UIFragment extends Fragment {
         if (mBound ){
             getActivity().unbindService(mConnection);
             mBound=false;
+            if (mTextView != null){
+                getActivity().getIntent().putExtra("TextviewsText",mTextView.getText());
+            }
         }
 
     }
@@ -191,6 +195,8 @@ public class UIFragment extends Fragment {
         super.onResume();
          Intent intent = new Intent(getActivity(), MusicPlayerService.class);
          intent.putExtra(RC_INTENT,new DataReceiver());
+        mTextView =(TextView)getActivity().findViewById(R.id.trackText);
+        mTextView.setText(getActivity().getIntent().getCharSequenceExtra("TextviewsText"));
         getActivity().bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
 
     }
@@ -209,8 +215,14 @@ public class UIFragment extends Fragment {
         protected void onReceiveResult(int resultCode, Bundle resultData) {
 
             if(resultData != null && resultData.containsKey(DATA_RETURNED)) {
-                TextView mTextView=(TextView)getActivity().findViewById(R.id.trackText);
-                mTextView.setText(resultData.getString(DATA_RETURNED, "works"));
+                if (getActivity()!=null){
+                    mTextView=(TextView)getActivity().findViewById(R.id.trackText);
+                    mTextView.setText(resultData.getString(DATA_RETURNED, "works"));
+                    resultData.putCharSequence("TextviewsText",mTextView.getText());
+                }else {
+                    Log.d("Activity","= null");
+                }
+
             }
         }
     }
