@@ -10,7 +10,6 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.MediaPlayer;
 import android.net.Uri;
@@ -25,7 +24,6 @@ import android.widget.Toast;
 import com.brianstacks.servicefundamentals.MainActivity;
 import com.brianstacks.servicefundamentals.R;
 import com.brianstacks.servicefundamentals.fragments.UIFragment;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -79,9 +77,6 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
         super.onCreate();
         Log.d("LOG", "Service Started!");
         mManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-
-
-
     }
 
     @Override
@@ -115,30 +110,38 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
                     public void onPrepared(MediaPlayer mp) {
                         mCurrentState=Player_Prepared;
                         mPlayer.start();
-                        if(intent.hasExtra(UIFragment.RC_INTENT)) {
-                            //Bitmap bitmap = BitmapFactory.decodeResource( getResources(), R.drawable.app_img);
-                            ResultReceiver receiver = intent.getParcelableExtra(UIFragment.RC_INTENT);
-                            Bundle result = new Bundle();
-                            if (currentTrack >= 0) {
-                                result.putString(UIFragment.DATA_RETURNED, artist[currentTrack] + lineSep + title[currentTrack]);
-                                receiver.send(UIFragment.RESULT_DATA_RETURNED, result);
-                                Intent getActivityIntent = new Intent(getApplicationContext(), MainActivity.class);
-                                getActivityIntent.setAction(Intent.ACTION_MAIN);
-                                getActivityIntent.addCategory(Intent.CATEGORY_LAUNCHER);
-                                PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 0, getActivityIntent, 0);
-                                NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext());
-                                builder.setContentIntent(pendingIntent);
-                                builder.setSmallIcon(R.drawable.ic_stat_one);
-                                builder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_stat_one));
-                                builder.setContentTitle(artist[currentTrack]);
-                                builder.setContentText(title[currentTrack]);
-                                builder.setAutoCancel(false);
-                                builder.setOngoing(true);
-                                startForeground(NOTIFICATION_ID, builder.build());
-                            }
+                        if (intent!=null){
+                            if(intent.hasExtra(UIFragment.RC_INTENT)) {
+                                //Bitmap bitmap = BitmapFactory.decodeResource( getResources(), R.drawable.app_img);
+                                ResultReceiver receiver = intent.getParcelableExtra(UIFragment.RC_INTENT);
+                                Bundle result = new Bundle();
+                                if (currentTrack >= 0) {
+                                    result.putString(UIFragment.DATA_RETURNED, artist[currentTrack] + lineSep + title[currentTrack]);
+                                    receiver.send(UIFragment.RESULT_DATA_RETURNED, result);
+                                    Intent getActivityIntent = new Intent(getApplicationContext(), MainActivity.class);
+                                    getActivityIntent.setAction(Intent.ACTION_MAIN);
+                                    getActivityIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+                                    PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 0, getActivityIntent, 0);
+                                    NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext());
+                                    builder.setContentIntent(pendingIntent);
+                                    builder.setSmallIcon(R.drawable.ic_stat_one);
+                                    builder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_stat_one));
+                                    builder.setContentTitle(artist[currentTrack]);
+                                    builder.setContentText(title[currentTrack]);
+                                    builder.setAutoCancel(false);
+                                    builder.setOngoing(true);
+                                    startForeground(NOTIFICATION_ID, builder.build());
+                                }
 
+
+                            }else {
+                                Log.d("Error","No Intent");
+                            }
+                        }else {
+                            Log.d("Error","Intent == null");
 
                         }
+
                     }
                 });
                 mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
@@ -190,11 +193,18 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
 
     public void onPlay() {
 
-        mPlayer.start();
+        if (mCurrentState==Player_Prepared){
+            mPlayer.start();
+        }else {
+            Intent intent = new Intent(getApplicationContext(), MusicPlayerService.class);
+            startService(intent);
+            Log.d("player","was stopped");
+        }
+
         }
 
     public void onStop()  {
-        mPlayer.reset();
+        mPlayer.stop();
     }
 
     public void onSkipForward() {
@@ -208,20 +218,12 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
                 e.printStackTrace();
             }
             mPlayer.prepareAsync();
-        }else {
-            mPlayer.reset();
-            try {
-                mPlayer.setDataSource(getApplicationContext(),Uri.parse(tracks[0]));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            mPlayer.prepareAsync();
         }
     }
 
     public void onSkipback() {
         currentTrack = (currentTrack - 1) % tracks.length;
-        if (currentTrack >= 0) {
+        if (currentTrack >= 0 ) {
             Uri nextTrack = Uri.parse(tracks[currentTrack]);
             mPlayer.reset();
             try {
@@ -231,6 +233,8 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
                 e.printStackTrace();
             }
             mPlayer.prepareAsync();
+        }else {
+            Toast.makeText(getApplicationContext(),"At the beginning",Toast.LENGTH_SHORT).show();
         }
     }
 
