@@ -11,11 +11,13 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.ResultReceiver;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -80,33 +82,30 @@ public class UIFragment extends Fragment {
     }
 
     @Override
-     public void onSaveInstanceState(Bundle outState) {
-            super.onSaveInstanceState(outState);
-            Log.v(TAG, "In frag's on save instance state ");
-        TextView mTextView=(TextView)getActivity().findViewById(R.id.trackText);
-        mTextView.setText(outState.getCharSequence("TextviewsText"));
-
-        }
-
-
-    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        Log.v(TAG, "In frag's on create view");
-        View view = inflater.inflate(R.layout.fragment_ui, container, false);
-        TextView mTextView=(TextView)view.findViewById(R.id.trackText);
-        if(savedInstanceState != null)
+        Log.v(TAG, "In frags on create view");
+        /*        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
+        mTextView=(TextView)getActivity().findViewById(R.id.trackText);
+        // then you use
+        if(mTextView != null)
         {
-                    mTextView.setText(savedInstanceState.getCharSequence("TextviewsText"));
-        }
+            String savedText = prefs.getString("TextviewsText", "");
+            mTextView.setText(savedText);
+        }*/
 
-        return view;
+        return inflater.inflate(R.layout.fragment_ui, container, false);
     }
 
     @Override
     public void onActivityCreated(Bundle savedInstance){
         super.onActivityCreated(savedInstance);
+        if (savedInstance != null) {
+            // Restore last state for checked position.
+            String testing = String.valueOf(savedInstance.getCharSequence("TextviewsText", ""));
+            Log.d("textViewText",testing);
+        }
         // get an instance of my xml elements
         Button mStartService = (Button)getActivity().findViewById(R.id.startService);
         Button mPlay= (Button)getActivity().findViewById(R.id.playButton);
@@ -180,12 +179,32 @@ public class UIFragment extends Fragment {
     public void onPause() {
         super.onPause();
 
+        Log.v(TAG, "In frags on onPause");
+        mTextView = (TextView)getActivity().findViewById(R.id.trackText);
+        if (mTextView.getText() != ""){
+            Log.v(TAG, "Text is not blank");
+            getActivity().getIntent().putExtra("TextviewsText",mTextView.getText());
+        }
+
         if (mBound ){
             getActivity().unbindService(mConnection);
             mBound=false;
-            if (mTextView != null){
-                getActivity().getIntent().putExtra("TextviewsText",mTextView.getText());
-            }
+
+        }
+
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        Log.v(TAG, "In frags on onPause");
+        mTextView = (TextView)getActivity().findViewById(R.id.trackText);
+        if (mTextView.getText() != ""){
+            Log.v(TAG, "Text is not blank");
+            outState.putCharSequence("TextviewsText", mTextView.getText());
+        }else {
+            Log.v(TAG, "Text is  blank!!!XXX");
+
         }
 
     }
@@ -193,14 +212,24 @@ public class UIFragment extends Fragment {
     @Override
     public void onResume(){
         super.onResume();
-         Intent intent = new Intent(getActivity(), MusicPlayerService.class);
+        Log.v(TAG, "In frags on onResume");
+        Intent intent = new Intent(getActivity(), MusicPlayerService.class);
          intent.putExtra(RC_INTENT,new DataReceiver());
         mTextView =(TextView)getActivity().findViewById(R.id.trackText);
-        mTextView.setText(getActivity().getIntent().getCharSequenceExtra("TextviewsText"));
+        if (getActivity().getIntent()!=null){
+            Log.v(TAG, String.valueOf(getActivity().getIntent().getCharSequenceExtra("TextviewsText")));
+        }
+       // mTextView.setText(getActivity().getIntent().getCharSequenceExtra("TextviewsText"));
         getActivity().bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
 
     }
 
+    @Override
+    public void onDestroy(){
+        super.onDestroy();
+        Log.v(TAG, "In frags on onDestroy");
+
+    }
 
 
     private final Handler mHandler = new Handler();
@@ -219,13 +248,18 @@ public class UIFragment extends Fragment {
                     mTextView=(TextView)getActivity().findViewById(R.id.trackText);
                     mTextView.setText(resultData.getString(DATA_RETURNED, "works"));
                     resultData.putCharSequence("TextviewsText",mTextView.getText());
+                    SharedPreferences sharedPrefs = PreferenceManager
+                            .getDefaultSharedPreferences(getActivity());
+                    sharedPrefs.edit().putString("TextviewsText", String.valueOf(mTextView.getText())).apply();
                 }else {
                     Log.d("Activity","= null");
+
                 }
 
             }
         }
     }
+
 
 
 
