@@ -74,6 +74,10 @@ public class UIFragment extends Fragment {
         super.onCreate(savedInstanceState);
 
 
+        Intent intent = new Intent(getActivity(), MusicPlayerService.class);
+        intent.putExtra(RC_INTENT,new DataReceiver());
+        getActivity().startService(intent);
+
     }
 
     @Override
@@ -89,6 +93,7 @@ public class UIFragment extends Fragment {
             String savedText = prefs.getString("TextviewsText", "");
             mTextView.setText(savedText);
         }*/
+
 
         return inflater.inflate(R.layout.fragment_ui, container, false);
     }
@@ -113,9 +118,8 @@ public class UIFragment extends Fragment {
         mStartService.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(getActivity(), MusicPlayerService.class);
-                intent.putExtra(RC_INTENT,new DataReceiver());
-                getActivity().startService(intent);
+
+
             }
         });
         mStopService.setOnClickListener(new View.OnClickListener() {

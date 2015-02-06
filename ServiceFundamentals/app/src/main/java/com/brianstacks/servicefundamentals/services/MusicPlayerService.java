@@ -112,10 +112,10 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
                             if (currentTrack >= 0) {
                                 result.putString(UIFragment.DATA_RETURNED, artist[currentTrack] + lineSep + title[currentTrack]);
                                 receiver.send(UIFragment.RESULT_DATA_RETURNED, result);
-                                Intent getActivityIntent = new Intent(getApplicationContext(), MainActivity.class);
+                                Intent getActivityIntent = new Intent(getApplication(), MainActivity.class);
                                 getActivityIntent.setAction(Intent.ACTION_MAIN);
                                 getActivityIntent.addCategory(Intent.CATEGORY_LAUNCHER);
-                                PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), NOTIFICATION_ID, getActivityIntent, 0);
+                                PendingIntent pendingIntent = PendingIntent.getActivity(getApplication(), NOTIFICATION_ID, getActivityIntent, 0);
                                 NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext());
                                 builder.setContentIntent(pendingIntent);
                                 builder.setSmallIcon(R.drawable.ic_stat_one);
