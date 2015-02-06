@@ -39,6 +39,9 @@ public class UIFragment extends Fragment {
     private final Handler mHandler = new Handler();
     MusicPlayerService musicPlayerService;
     boolean mBound = false;
+    TextView mTextView;
+    DataReceiver dataReceiver;
+
     private ServiceConnection mConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
@@ -55,7 +58,7 @@ public class UIFragment extends Fragment {
             Toast.makeText(getActivity(), "Disconnected" + name.toString(), Toast.LENGTH_SHORT).show();
         }
     };
-    TextView mTextView;
+
 
 
     public UIFragment() {
@@ -73,10 +76,8 @@ public class UIFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        dataReceiver = new DataReceiver();
 
-        Intent intent = new Intent(getActivity(), MusicPlayerService.class);
-        intent.putExtra(RC_INTENT,new DataReceiver());
-        getActivity().startService(intent);
 
     }
 
@@ -118,7 +119,9 @@ public class UIFragment extends Fragment {
         mStartService.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                Intent intent = new Intent(getActivity(), MusicPlayerService.class);
+                intent.putExtra(RC_INTENT,dataReceiver);
+                getActivity().startService(intent);
 
             }
         });
@@ -190,7 +193,8 @@ public class UIFragment extends Fragment {
         super.onResume();
         Log.v(TAG, "In frags on onResume");
         Intent intent = new Intent(getActivity(), MusicPlayerService.class);
-        intent.putExtra(RC_INTENT,new DataReceiver());
+
+        intent.putExtra(RC_INTENT,dataReceiver);
         getActivity().bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
 
     }
