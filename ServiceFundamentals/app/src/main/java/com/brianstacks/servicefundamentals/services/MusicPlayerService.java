@@ -148,8 +148,20 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
                             e.printStackTrace();
                         }
                         mPlayer.prepareAsync();
+
                     }else {
                         Log.d("Error onCompletion"," Something went wrong");
+                    }
+                    if (intent!=null) {
+                        if (intent.hasExtra(UIFragment.RC_INTENT)) {
+                            //Bitmap bitmap = BitmapFactory.decodeResource( getResources(), R.drawable.app_img);
+                            ResultReceiver receiver = intent.getParcelableExtra(UIFragment.RC_INTENT);
+                            Bundle result = new Bundle();
+                            if (currentTrack >= 0) {
+                                result.putString(UIFragment.DATA_RETURNED, artist[currentTrack] + lineSep + title[currentTrack]);
+                                receiver.send(UIFragment.RESULT_DATA_RETURNED, result);
+                            }
+                        }
                     }
                 }
             });

@@ -6,11 +6,13 @@
 package com.brianstacks.servicefundamentals.fragments;
 
 
+import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.os.Handler;
@@ -41,6 +43,8 @@ public class UIFragment extends Fragment {
     boolean mBound = false;
     TextView mTextView;
     DataReceiver dataReceiver;
+    private OnFragmentInteractionListener mListener;
+
 
     private ServiceConnection mConnection = new ServiceConnection() {
         @Override
@@ -218,6 +222,7 @@ public class UIFragment extends Fragment {
                 if (getActivity()!=null){
                     mTextView=(TextView)getActivity().findViewById(R.id.trackText);
                     mTextView.setText(resultData.getString(DATA_RETURNED, ""));
+                    mListener.onFragmentInteraction(resultData.getString(DATA_RETURNED));
                     resultData.putCharSequence("TextviewsText",mTextView.getText());
                     SharedPreferences sharedPrefs = PreferenceManager
                             .getDefaultSharedPreferences(getActivity());
@@ -228,5 +233,28 @@ public class UIFragment extends Fragment {
                 }
             }
         }
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        try {
+            mListener = (OnFragmentInteractionListener) activity;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(activity.toString()
+                    + " must implement OnFragmentInteractionListener");
+        }
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        mListener = null;
+    }
+
+
+    public interface OnFragmentInteractionListener {
+        // TODO: Update argument type and name
+        public void onFragmentInteraction(String data);
     }
 }
