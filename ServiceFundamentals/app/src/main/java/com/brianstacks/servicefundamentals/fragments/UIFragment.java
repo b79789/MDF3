@@ -6,7 +6,6 @@
 package com.brianstacks.servicefundamentals.fragments;
 
 
-import android.app.NotificationManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -25,8 +24,6 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.brianstacks.servicefundamentals.MainActivity;
 import com.brianstacks.servicefundamentals.R;
 import com.brianstacks.servicefundamentals.services.MusicPlayerService;
 
@@ -102,9 +99,10 @@ public class UIFragment extends Fragment {
     public void onActivityCreated(Bundle savedInstance){
         super.onActivityCreated(savedInstance);
         if (savedInstance != null) {
+            Toast.makeText(getActivity(),"Saved Instance is not null",Toast.LENGTH_SHORT).show();
             // Restore last state for checked position.
-            String testing = String.valueOf(savedInstance.getCharSequence("TextviewsText", ""));
-            Log.d("textViewText",testing);
+            /*String testing = String.valueOf(savedInstance.getCharSequence("TextviewsText", ""));
+            Log.d("textViewText",testing);*/
         }
         // get an instance of my xml elements
         Button mStartService = (Button)getActivity().findViewById(R.id.startService);
@@ -189,21 +187,6 @@ public class UIFragment extends Fragment {
         if (mBound ){
             getActivity().unbindService(mConnection);
             mBound=false;
-
-        }
-
-    }
-
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        Log.v(TAG, "In frags on onPause");
-        mTextView = (TextView)getActivity().findViewById(R.id.trackText);
-        if (mTextView.getText() != ""){
-            Log.v(TAG, "Text is not blank");
-            outState.putCharSequence("TextviewsText", mTextView.getText());
-        }else {
-            Log.v(TAG, "Text is  blank!!!XXX");
 
         }
 

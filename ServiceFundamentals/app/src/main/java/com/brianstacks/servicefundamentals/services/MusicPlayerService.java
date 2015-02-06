@@ -195,23 +195,33 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
     }
 
     public void onPause() {
-        mPlayer.pause();
+        if (mPlayer!=null) {
+            mPlayer.pause();
+        }else{
+            Toast.makeText(this,"The media player isn't playing",Toast.LENGTH_SHORT).show();
+        }
     }
 
     public void onPlay() {
 
         if (mCurrentState==Player_Prepared){
             mPlayer.start();
-            }
+            }else{
+            Toast.makeText(this,"The media player isn't prepared",Toast.LENGTH_SHORT).show();
+        }
         }
 
     public void onStop()  {
-        mPlayer.stop();
+        if (mPlayer!=null){
+            mPlayer.stop();
+        }else{
+            Toast.makeText(this,"The media player isn't playing",Toast.LENGTH_SHORT).show();
+        }
     }
 
     public void onSkipForward() {
-        currentTrack = (currentTrack + 1) % tracks.length;
-        if (currentTrack>=0){
+        currentTrack = (currentTrack + 1);
+        if (currentTrack>=0 && currentTrack<=3){
             Uri nextTrack = Uri.parse(tracks[currentTrack]);
             mPlayer.reset();
             try {
@@ -220,12 +230,14 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
                 e.printStackTrace();
             }
             mPlayer.prepareAsync();
+        }else {
+            Toast.makeText(this,"End of track list",Toast.LENGTH_SHORT).show();
         }
     }
 
     public void onSkipback() {
-        currentTrack = (currentTrack - 1) % tracks.length;
-        if (currentTrack >= 0 ) {
+        currentTrack = (currentTrack - 1);
+        if (currentTrack >= 0  && currentTrack<=3) {
             Uri nextTrack = Uri.parse(tracks[currentTrack]);
             mPlayer.reset();
             try {
@@ -235,6 +247,8 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
                 e.printStackTrace();
             }
             mPlayer.prepareAsync();
+        }else {
+            Toast.makeText(this,"Beginning of track list",Toast.LENGTH_SHORT).show();
         }
     }
 
