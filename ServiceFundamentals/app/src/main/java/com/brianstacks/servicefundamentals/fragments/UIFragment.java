@@ -36,22 +36,9 @@ public class UIFragment extends Fragment {
     public static final String DATA_RETURNED = "MainActivity.DATA_RETURNED";
     public static final int RESULT_DATA_RETURNED = 0x0101010;
     public static final String RC_INTENT = "com.brianstacks..servicefundamentals.RC_INTENT";
+    private final Handler mHandler = new Handler();
     MusicPlayerService musicPlayerService;
     boolean mBound = false;
-    TextView mTextView;
-
-    public static UIFragment newInstance() {
-        UIFragment fragment = new UIFragment();
-        Bundle args = new Bundle();
-        fragment.setArguments(args);
-        return fragment;
-    }
-
-    public UIFragment() {
-        // Required empty public constructor
-    }
-
-
     private ServiceConnection mConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
@@ -68,8 +55,19 @@ public class UIFragment extends Fragment {
             Toast.makeText(getActivity(), "Disconnected" + name.toString(), Toast.LENGTH_SHORT).show();
         }
     };
+    TextView mTextView;
 
 
+    public UIFragment() {
+        // Required empty public constructor
+    }
+
+    public static UIFragment newInstance() {
+        UIFragment fragment = new UIFragment();
+        Bundle args = new Bundle();
+        fragment.setArguments(args);
+        return fragment;
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -176,20 +174,11 @@ public class UIFragment extends Fragment {
     @Override
     public void onPause() {
         super.onPause();
-
         Log.v(TAG, "In frags on onPause");
-        mTextView = (TextView)getActivity().findViewById(R.id.trackText);
-        if (mTextView.getText() != ""){
-            Log.v(TAG, "Text is not blank");
-            getActivity().getIntent().putExtra("TextviewsText",mTextView.getText());
-        }
-
         if (mBound ){
             getActivity().unbindService(mConnection);
             mBound=false;
-
         }
-
     }
 
     @Override
@@ -197,12 +186,7 @@ public class UIFragment extends Fragment {
         super.onResume();
         Log.v(TAG, "In frags on onResume");
         Intent intent = new Intent(getActivity(), MusicPlayerService.class);
-         intent.putExtra(RC_INTENT,new DataReceiver());
-        mTextView =(TextView)getActivity().findViewById(R.id.trackText);
-        if (getActivity().getIntent()!=null){
-            Log.v(TAG, String.valueOf(getActivity().getIntent().getCharSequenceExtra("TextviewsText")));
-        }
-       // mTextView.setText(getActivity().getIntent().getCharSequenceExtra("TextviewsText"));
+        intent.putExtra(RC_INTENT,new DataReceiver());
         getActivity().bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
 
     }
@@ -213,10 +197,6 @@ public class UIFragment extends Fragment {
         Log.v(TAG, "In frags on onDestroy");
 
     }
-
-
-    private final Handler mHandler = new Handler();
-
 
     public class DataReceiver extends ResultReceiver {
         public DataReceiver() {
@@ -229,7 +209,7 @@ public class UIFragment extends Fragment {
             if(resultData != null && resultData.containsKey(DATA_RETURNED)) {
                 if (getActivity()!=null){
                     mTextView=(TextView)getActivity().findViewById(R.id.trackText);
-                    mTextView.setText(resultData.getString(DATA_RETURNED, "works"));
+                    mTextView.setText(resultData.getString(DATA_RETURNED, ""));
                     resultData.putCharSequence("TextviewsText",mTextView.getText());
                     SharedPreferences sharedPrefs = PreferenceManager
                             .getDefaultSharedPreferences(getActivity());
@@ -238,14 +218,7 @@ public class UIFragment extends Fragment {
                     Log.d("Activity","= null");
 
                 }
-
             }
         }
     }
-
-
-
-
-
-
 }
