@@ -44,6 +44,7 @@ public class UIFragment extends Fragment {
     TextView mTextView;
     DataReceiver dataReceiver;
     private OnFragmentInteractionListener mListener;
+    Intent intent;
 
 
     private ServiceConnection mConnection = new ServiceConnection() {
@@ -81,38 +82,21 @@ public class UIFragment extends Fragment {
         super.onCreate(savedInstanceState);
 
         dataReceiver = new DataReceiver();
-
-
+        intent = new Intent(getActivity(), MusicPlayerService.class);
+        intent.putExtra(RC_INTENT,new DataReceiver());
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        Log.v(TAG, "In frags on create view");
-        /*        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        mTextView=(TextView)getActivity().findViewById(R.id.trackText);
-        // then you use
-        if(mTextView != null)
-        {
-            String savedText = prefs.getString("TextviewsText", "");
-            mTextView.setText(savedText);
-        }*/
-
-
         return inflater.inflate(R.layout.fragment_ui, container, false);
     }
 
     @Override
     public void onActivityCreated(Bundle savedInstance){
         super.onActivityCreated(savedInstance);
-        if (savedInstance != null) {
-            Toast.makeText(getActivity(),"Saved Instance is not null",Toast.LENGTH_SHORT).show();
-            // Restore last state for checked position.
-            /*String testing = String.valueOf(savedInstance.getCharSequence("TextviewsText", ""));
-            Log.d("textViewText",testing);*/
-        }
         // get an instance of my xml elements
+        mTextView=(TextView)getActivity().findViewById(R.id.trackText);
         Button mStartService = (Button)getActivity().findViewById(R.id.startService);
         Button mPlay= (Button)getActivity().findViewById(R.id.playButton);
         Button mPause= (Button)getActivity().findViewById(R.id.pauseButton);
@@ -123,8 +107,6 @@ public class UIFragment extends Fragment {
         mStartService.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(getActivity(), MusicPlayerService.class);
-                intent.putExtra(RC_INTENT,dataReceiver);
                 getActivity().startService(intent);
 
             }
@@ -132,7 +114,6 @@ public class UIFragment extends Fragment {
         mStopService.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(getActivity(), MusicPlayerService.class);
                 getActivity().stopService(intent);
             }
         });
@@ -196,17 +177,13 @@ public class UIFragment extends Fragment {
     public void onResume(){
         super.onResume();
         Log.v(TAG, "In frags on onResume");
-        Intent intent = new Intent(getActivity(), MusicPlayerService.class);
+        if (!mBound){
+            getActivity().bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
 
-        intent.putExtra(RC_INTENT,dataReceiver);
-        getActivity().bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+        }else {
+            Log.v(TAG, "In frags on onResume and was still bound");
 
-    }
-
-    @Override
-    public void onDestroy(){
-        super.onDestroy();
-        Log.v(TAG, "In frags on onDestroy");
+        }
 
     }
 
@@ -220,13 +197,8 @@ public class UIFragment extends Fragment {
 
             if(resultData != null && resultData.containsKey(DATA_RETURNED)) {
                 if (getActivity()!=null){
-                    mTextView=(TextView)getActivity().findViewById(R.id.trackText);
                     mTextView.setText(resultData.getString(DATA_RETURNED, ""));
                     mListener.onFragmentInteraction(resultData.getString(DATA_RETURNED));
-                    resultData.putCharSequence("TextviewsText",mTextView.getText());
-                    SharedPreferences sharedPrefs = PreferenceManager
-                            .getDefaultSharedPreferences(getActivity());
-                    sharedPrefs.edit().putString("TextviewsText", String.valueOf(mTextView.getText())).apply();
                 }else {
                     Log.d("Activity","= null");
 

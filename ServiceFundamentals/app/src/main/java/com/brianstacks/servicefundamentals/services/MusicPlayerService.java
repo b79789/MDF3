@@ -45,11 +45,13 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
     final String[] tracks = {uri1, uri2, uri3, uri4};
     final String[] artist = {"Katy Perry","Arab Muzic","Drake","Adam Levine"};
     final String[] title = {"Dark Horse","Instrumental","Trophies","One More Night"};
+    final int[]pics ={R.drawable.katy,R.drawable.araab,R.drawable.trophie,R.drawable.maroon};
     MediaPlayer mPlayer;
     ArrayList<String> trackList=new ArrayList<>();
     NotificationManager mManager;
     private int currentTrack = 0;
     private int mCurrentState;
+    Intent myIntent;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -84,8 +86,9 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
     }
 
     @Override
-    public int onStartCommand(final Intent intent, int flags, int startId) {
+    public int onStartCommand(Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
+        myIntent = intent;
         Collections.addAll(trackList, tracks);
         Uri file = Uri.parse(tracks[this.currentTrack]);
         if (mPlayer == null ){
@@ -104,6 +107,7 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
                 public void onPrepared(MediaPlayer mp) {
                     mCurrentState=Player_Prepared;
                     mPlayer.start();
+                    Intent intent = myIntent;
                     if (intent!=null){
                         if(intent.hasExtra(UIFragment.RC_INTENT)) {
                             //Bitmap bitmap = BitmapFactory.decodeResource( getResources(), R.drawable.app_img);
@@ -137,6 +141,8 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
             mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                 @Override
                 public void onCompletion(MediaPlayer mp) {
+                    stopForeground(true);
+                    Intent intent = myIntent;
                     mCurrentState=Player_Completed;
                     currentTrack = (currentTrack + 1) % tracks.length;
                     if (currentTrack >= 0 && currentTrack !=4) {
@@ -148,26 +154,41 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
                             e.printStackTrace();
                         }
                         mPlayer.prepareAsync();
+                        if (intent!=null) {
+                            if (intent.hasExtra(UIFragment.RC_INTENT)) {
+                                //Bitmap bitmap = BitmapFactory.decodeResource( getResources(), R.drawable.app_img);
+                                ResultReceiver receiver = intent.getParcelableExtra(UIFragment.RC_INTENT);
+                                Bundle result = new Bundle();
+                                if (currentTrack >= 0) {
+                                    result.putString(UIFragment.DATA_RETURNED, artist[currentTrack] + lineSep + title[currentTrack]);
+                                    receiver.send(UIFragment.RESULT_DATA_RETURNED, result);
+                                    Intent getActivityIntent = new Intent(getApplication(), MainActivity.class);
+                                    getActivityIntent.setAction(Intent.ACTION_MAIN);
+                                    getActivityIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+                                    PendingIntent pendingIntent = PendingIntent.getActivity(getApplication(), NOTIFICATION_ID, getActivityIntent, 0);
+                                    NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext());
+                                    builder.setContentIntent(pendingIntent);
+                                    builder.setSmallIcon(R.drawable.ic_stat_one);
+                                    builder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_stat_one));
+                                    builder.setContentTitle(artist[currentTrack]);
+                                    builder.setContentText(title[currentTrack]);
+                                    builder.setAutoCancel(false);
+                                    builder.setOngoing(true);
+                                    startForeground(NOTIFICATION_ID, builder.build());
+
+                                }
+                            }
+                        }
 
                     }else {
                         Log.d("Error onCompletion"," Something went wrong");
                     }
-                    if (intent!=null) {
-                        if (intent.hasExtra(UIFragment.RC_INTENT)) {
-                            //Bitmap bitmap = BitmapFactory.decodeResource( getResources(), R.drawable.app_img);
-                            ResultReceiver receiver = intent.getParcelableExtra(UIFragment.RC_INTENT);
-                            Bundle result = new Bundle();
-                            if (currentTrack >= 0) {
-                                result.putString(UIFragment.DATA_RETURNED, artist[currentTrack] + lineSep + title[currentTrack]);
-                                receiver.send(UIFragment.RESULT_DATA_RETURNED, result);
-                            }
-                        }
-                    }
+
                 }
             });
             mPlayer.setOnErrorListener(this);
         }else{
-            mPlayer.setOnErrorListener(this);
+            Log.d("Error ","Media player is not null but should be");
         }
         return START_STICKY;
     }
@@ -197,7 +218,7 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
 
     public void onStop()  {
         if (mPlayer!=null){
-            mPlayer.stop();
+            mPlayer.reset();
         }else{
             Toast.makeText(this,"The media player isn't playing",Toast.LENGTH_SHORT).show();
         }

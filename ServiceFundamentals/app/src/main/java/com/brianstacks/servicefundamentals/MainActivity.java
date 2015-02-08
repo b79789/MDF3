@@ -51,6 +51,6 @@ public class MainActivity extends ActionBarActivity implements UIFragment.OnFrag
 
     @Override
     public void onFragmentInteraction(String data) {
-        Toast.makeText(this,data,Toast.LENGTH_SHORT).show();
+        //Toast.makeText(this,data,Toast.LENGTH_SHORT).show();
     }
 }
