@@ -49,37 +49,25 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
     MediaPlayer mPlayer;
     ArrayList<String> trackList=new ArrayList<>();
     NotificationManager mManager;
-    private int currentTrack = 0;
-    private int mCurrentState;
-    Intent myIntent;
     ResultReceiver resultReceiver;
     Bundle result;
+    private int currentTrack = 0;
+    private int mCurrentState;
 
     @Override
     public IBinder onBind(Intent intent) {
+        resultReceiver = intent.getParcelableExtra(UIFragment.RC_INTENT);
+        result=new Bundle();
+        result.putString(UIFragment.DATA_RETURNED, artist[currentTrack] + lineSep + title[currentTrack]);
+        resultReceiver.send(UIFragment.RESULT_DATA_RETURNED, result);
         return new BoundServiceBinder();
     }
 
     @Override
     public boolean onUnbind(Intent intent) {
-        intent.putExtra(UIFragment.RC_INTENT,intent);
-        return false;
-    }
 
-    @Override
-    public void onRebind(Intent intent) {
-        // A client is binding to the service with bindService(),
-        // after onUnbind() has already been called
-        if(intent.hasExtra(UIFragment.RC_INTENT)) {
-            //Bitmap bitmap = BitmapFactory.decodeResource( getResources(), R.drawable.app_img);
-            resultReceiver = intent.getParcelableExtra(UIFragment.RC_INTENT);
-            Bundle result = new Bundle();
-            if (currentTrack >= 0) {
-                result.putString(UIFragment.DATA_RETURNED, artist[currentTrack] + lineSep + title[currentTrack]);
-                resultReceiver.send(UIFragment.RESULT_DATA_RETURNED, result);
-            }
-        }
-        intent.getExtras();
+
+        return false;
     }
 
     public void onCreate() {
@@ -128,25 +116,25 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
                     mCurrentState=Player_Prepared;
                     mPlayer.start();
                     if (currentTrack >= 0) {
-                                result.putString(UIFragment.DATA_RETURNED, artist[currentTrack] + lineSep + title[currentTrack]);
-                                resultReceiver.send(UIFragment.RESULT_DATA_RETURNED, result);
-                                Intent getActivityIntent = new Intent(getApplication(), MainActivity.class);
-                                getActivityIntent.setAction(Intent.ACTION_MAIN);
-                                getActivityIntent.addCategory(Intent.CATEGORY_LAUNCHER);
-                                PendingIntent pendingIntent = PendingIntent.getActivity(getApplication(), NOTIFICATION_ID, getActivityIntent, 0);
-                                NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext());
-                                builder.setContentIntent(pendingIntent);
-                                builder.setSmallIcon(R.drawable.ic_stat_one);
-                                builder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_stat_one));
-                                builder.setContentTitle(artist[currentTrack]);
-                                builder.setContentText(title[currentTrack]);
-                                builder.setAutoCancel(false);
-                                builder.setOngoing(true);
-                                startForeground(NOTIFICATION_ID, builder.build());
-                            }
-                        else {
-                            Log.d("Error","track is wrong");
-                        }
+                        result.putString(UIFragment.DATA_RETURNED, artist[currentTrack] + lineSep + title[currentTrack]);
+                        resultReceiver.send(UIFragment.RESULT_DATA_RETURNED, result);
+                        Intent getActivityIntent = new Intent(getApplication(), MainActivity.class);
+                        getActivityIntent.setAction(Intent.ACTION_MAIN);
+                        getActivityIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+                        PendingIntent pendingIntent = PendingIntent.getActivity(getApplication(), NOTIFICATION_ID, getActivityIntent, 0);
+                        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext());
+                        builder.setContentIntent(pendingIntent);
+                        builder.setSmallIcon(R.drawable.ic_stat_one);
+                        builder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_stat_one));
+                        builder.setContentTitle(artist[currentTrack]);
+                        builder.setContentText(title[currentTrack]);
+                        builder.setAutoCancel(false);
+                        builder.setOngoing(true);
+                        startForeground(NOTIFICATION_ID, builder.build());
+                    }
+                    else {
+                        Log.d("Error","track is wrong");
+                    }
                 }
             });
             mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
@@ -165,23 +153,23 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
                         }
                         mPlayer.prepareAsync();
                         if (currentTrack >= 0) {
-                                    result.putString(UIFragment.DATA_RETURNED, artist[currentTrack] + lineSep + title[currentTrack]);
-                                    resultReceiver.send(UIFragment.RESULT_DATA_RETURNED, result);
-                                    Intent getActivityIntent = new Intent(getApplication(), MainActivity.class);
-                                    getActivityIntent.setAction(Intent.ACTION_MAIN);
-                                    getActivityIntent.addCategory(Intent.CATEGORY_LAUNCHER);
-                                    PendingIntent pendingIntent = PendingIntent.getActivity(getApplication(), NOTIFICATION_ID, getActivityIntent, 0);
-                                    NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext());
-                                    builder.setContentIntent(pendingIntent);
-                                    builder.setSmallIcon(R.drawable.ic_stat_one);
-                                    builder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_stat_one));
-                                    builder.setContentTitle(artist[currentTrack]);
-                                    builder.setContentText(title[currentTrack]);
-                                    builder.setAutoCancel(false);
-                                    builder.setOngoing(true);
-                                    startForeground(NOTIFICATION_ID, builder.build());
+                            result.putString(UIFragment.DATA_RETURNED, artist[currentTrack] + lineSep + title[currentTrack]);
+                            resultReceiver.send(UIFragment.RESULT_DATA_RETURNED, result);
+                            Intent getActivityIntent = new Intent(getApplication(), MainActivity.class);
+                            getActivityIntent.setAction(Intent.ACTION_MAIN);
+                            getActivityIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+                            PendingIntent pendingIntent = PendingIntent.getActivity(getApplication(), NOTIFICATION_ID, getActivityIntent, 0);
+                            NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext());
+                            builder.setContentIntent(pendingIntent);
+                            builder.setSmallIcon(R.drawable.ic_stat_one);
+                            builder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_stat_one));
+                            builder.setContentTitle(artist[currentTrack]);
+                            builder.setContentText(title[currentTrack]);
+                            builder.setAutoCancel(false);
+                            builder.setOngoing(true);
+                            startForeground(NOTIFICATION_ID, builder.build());
 
-                         }
+                        }
                     }else {
                         Log.d("Error onCompletion"," track size error");
                     }
@@ -237,11 +225,11 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
                 e.printStackTrace();
             }
             mPlayer.prepareAsync();
-                //Bitmap bitmap = BitmapFactory.decodeResource( getResources(), R.drawable.app_img);
-                if (currentTrack >= 0) {
-                    result.putString(UIFragment.DATA_RETURNED, artist[currentTrack] + lineSep + title[currentTrack]);
-                    resultReceiver.send(UIFragment.RESULT_DATA_RETURNED, result);
-                }
+            //Bitmap bitmap = BitmapFactory.decodeResource( getResources(), R.drawable.app_img);
+            if (currentTrack >= 0) {
+                result.putString(UIFragment.DATA_RETURNED, artist[currentTrack] + lineSep + title[currentTrack]);
+                resultReceiver.send(UIFragment.RESULT_DATA_RETURNED, result);
+            }
 
         }else {
             Toast.makeText(this,"End of track list",Toast.LENGTH_SHORT).show();
