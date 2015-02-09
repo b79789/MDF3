@@ -68,6 +68,15 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
     public void onRebind(Intent intent) {
         // A client is binding to the service with bindService(),
         // after onUnbind() has already been called
+        if(intent.hasExtra(UIFragment.RC_INTENT)) {
+            //Bitmap bitmap = BitmapFactory.decodeResource( getResources(), R.drawable.app_img);
+            ResultReceiver receiver = intent.getParcelableExtra(UIFragment.RC_INTENT);
+            Bundle result = new Bundle();
+            if (currentTrack >= 0) {
+                result.putString(UIFragment.DATA_RETURNED, artist[currentTrack] + lineSep + title[currentTrack]);
+                receiver.send(UIFragment.RESULT_DATA_RETURNED, result);
+            }
+        }
         intent.getExtras();
     }
 
@@ -91,6 +100,7 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
         myIntent = intent;
         Collections.addAll(trackList, tracks);
         Uri file = Uri.parse(tracks[this.currentTrack]);
+
         if (mPlayer == null ){
             mPlayer = new MediaPlayer();
             mCurrentState=Player_Idle;
@@ -101,6 +111,15 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
                 Log.e(DEBUG_TAG, "Player failed", e);
             }
             mPlayer.prepareAsync();
+            if(intent.hasExtra(UIFragment.RC_INTENT)) {
+                //Bitmap bitmap = BitmapFactory.decodeResource( getResources(), R.drawable.app_img);
+                ResultReceiver receiver = intent.getParcelableExtra(UIFragment.RC_INTENT);
+                Bundle result = new Bundle();
+                if (currentTrack >= 0) {
+                    result.putString(UIFragment.DATA_RETURNED, artist[currentTrack] + lineSep + title[currentTrack]);
+                    receiver.send(UIFragment.RESULT_DATA_RETURNED, result);
+                }
+            }
             mCurrentState=Player_Prepairing;
             mPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
                 @Override
@@ -225,6 +244,7 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
     }
 
     public void onSkipForward() {
+        Intent intent = myIntent;
         currentTrack = (currentTrack + 1);
         if (currentTrack>=0 && currentTrack<=3){
             Uri nextTrack = Uri.parse(tracks[currentTrack]);
@@ -235,12 +255,23 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
                 e.printStackTrace();
             }
             mPlayer.prepareAsync();
+            if(intent.hasExtra(UIFragment.RC_INTENT)) {
+                //Bitmap bitmap = BitmapFactory.decodeResource( getResources(), R.drawable.app_img);
+                ResultReceiver receiver = intent.getParcelableExtra(UIFragment.RC_INTENT);
+                Bundle result = new Bundle();
+                if (currentTrack >= 0) {
+                    result.putString(UIFragment.DATA_RETURNED, artist[currentTrack] + lineSep + title[currentTrack]);
+                    receiver.send(UIFragment.RESULT_DATA_RETURNED, result);
+                }
+            }
         }else {
             Toast.makeText(this,"End of track list",Toast.LENGTH_SHORT).show();
         }
     }
 
     public void onSkipback() {
+        Intent intent = myIntent;
+
         currentTrack = (currentTrack - 1);
         if (currentTrack >= 0  && currentTrack<=3) {
             Uri nextTrack = Uri.parse(tracks[currentTrack]);
@@ -252,6 +283,15 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
                 e.printStackTrace();
             }
             mPlayer.prepareAsync();
+            if(intent.hasExtra(UIFragment.RC_INTENT)) {
+                //Bitmap bitmap = BitmapFactory.decodeResource( getResources(), R.drawable.app_img);
+                ResultReceiver receiver = intent.getParcelableExtra(UIFragment.RC_INTENT);
+                Bundle result = new Bundle();
+                if (currentTrack >= 0) {
+                    result.putString(UIFragment.DATA_RETURNED, artist[currentTrack] + lineSep + title[currentTrack]);
+                    receiver.send(UIFragment.RESULT_DATA_RETURNED, result);
+                }
+            }
         }else {
             Toast.makeText(this,"Beginning of track list",Toast.LENGTH_SHORT).show();
         }

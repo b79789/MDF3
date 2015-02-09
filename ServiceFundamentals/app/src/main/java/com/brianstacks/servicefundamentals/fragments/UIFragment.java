@@ -34,6 +34,8 @@ import com.brianstacks.servicefundamentals.services.MusicPlayerService;
  */
 public class UIFragment extends Fragment {
 
+    public final String TEXT_KEY = "text";
+
     public static final String TAG = "UIFragment.TAG";
     public static final String DATA_RETURNED = "MainActivity.DATA_RETURNED";
     public static final int RESULT_DATA_RETURNED = 0x0101010;
@@ -43,8 +45,8 @@ public class UIFragment extends Fragment {
     boolean mBound = false;
     TextView mTextView;
     DataReceiver dataReceiver;
-    private OnFragmentInteractionListener mListener;
     Intent intent;
+    SharedPreferences sharedPrefs;
 
 
     private ServiceConnection mConnection = new ServiceConnection() {
@@ -77,24 +79,38 @@ public class UIFragment extends Fragment {
         return fragment;
     }
 
+    // Fires when a configuration change occurs and fragment needs to save state
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putCharSequence(TEXT_KEY, mTextView.getText());
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         dataReceiver = new DataReceiver();
         intent = new Intent(getActivity(), MusicPlayerService.class);
         intent.putExtra(RC_INTENT,new DataReceiver());
+        // Retain this fragment across configuration changes.
+        setRetainInstance(true);
+
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        if (savedInstanceState != null) {
+            mTextView.setText(savedInstanceState.getCharSequence(TEXT_KEY));
+            // Do something with value if needed
+        }
         return inflater.inflate(R.layout.fragment_ui, container, false);
     }
 
     @Override
     public void onActivityCreated(Bundle savedInstance){
         super.onActivityCreated(savedInstance);
+
         // get an instance of my xml elements
         mTextView=(TextView)getActivity().findViewById(R.id.trackText);
         Button mStartService = (Button)getActivity().findViewById(R.id.startService);
@@ -107,6 +123,9 @@ public class UIFragment extends Fragment {
         mStartService.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+                intent = new Intent(getActivity(), MusicPlayerService.class);
+                intent.putExtra(RC_INTENT,new DataReceiver());
                 getActivity().startService(intent);
 
             }
@@ -114,6 +133,7 @@ public class UIFragment extends Fragment {
         mStopService.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
                 getActivity().stopService(intent);
             }
         });
@@ -166,7 +186,11 @@ public class UIFragment extends Fragment {
     @Override
     public void onPause() {
         super.onPause();
-        Log.v(TAG, "In frags on onPause");
+        mTextView=(TextView)getActivity().findViewById(R.id.trackText);
+/*        sharedPrefs = getActivity().getSharedPreferences("prefs",Context.MODE_PRIVATE);
+
+        sharedPrefs.edit().putString("textViewText", String.valueOf(mTextView.getText())).apply();
+        Log.v(TAG, "In frags on onPause"+" " +sharedPrefs.getString("textViewText","text"));*/
         if (mBound ){
             getActivity().unbindService(mConnection);
             mBound=false;
@@ -176,7 +200,8 @@ public class UIFragment extends Fragment {
     @Override
     public void onResume(){
         super.onResume();
-        Log.v(TAG, "In frags on onResume");
+        intent = new Intent(getActivity(), MusicPlayerService.class);
+        intent.putExtra(RC_INTENT,new DataReceiver());
         if (!mBound){
             getActivity().bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
 
@@ -196,37 +221,15 @@ public class UIFragment extends Fragment {
         protected void onReceiveResult(int resultCode, Bundle resultData) {
 
             if(resultData != null && resultData.containsKey(DATA_RETURNED)) {
-                if (getActivity()!=null){
+                if (mTextView!=null){
                     mTextView.setText(resultData.getString(DATA_RETURNED, ""));
-                    mListener.onFragmentInteraction(resultData.getString(DATA_RETURNED));
                 }else {
-                    Log.d("Activity","= null");
+                    Log.d("TextView","= null");
 
                 }
             }
         }
     }
 
-    @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        try {
-            mListener = (OnFragmentInteractionListener) activity;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }
-    }
 
-    @Override
-    public void onDetach() {
-        super.onDetach();
-        mListener = null;
-    }
-
-
-    public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        public void onFragmentInteraction(String data);
-    }
 }

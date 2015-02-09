@@ -9,6 +9,7 @@ import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
@@ -16,20 +17,37 @@ import android.widget.Toast;
 import com.brianstacks.servicefundamentals.fragments.UIFragment;
 
 
-public class MainActivity extends ActionBarActivity implements UIFragment.OnFragmentInteractionListener{
+public class MainActivity extends ActionBarActivity{
+
+    public UIFragment fragmentSimple;
+    public final String SIMPLE_FRAGMENT_TAG = UIFragment.TAG;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        FragmentManager mgr = getFragmentManager();
+        if (savedInstanceState != null) { // saved instance state, fragment may exist
+            // look up the instance that already exists by tag
+             fragmentSimple = (UIFragment)getFragmentManager().findFragmentByTag(SIMPLE_FRAGMENT_TAG);
+        } else if (fragmentSimple == null) {
+            // only create fragment if they haven't been instantiated already
+            fragmentSimple = new UIFragment();
+        }if (!fragmentSimple.isInLayout()) {
+            getFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.fragment_container, fragmentSimple, SIMPLE_FRAGMENT_TAG)
+                    .commit();
+        }
+       /* FragmentManager mgr = getFragmentManager();
         UIFragment uiFragment = (UIFragment) mgr.findFragmentByTag(UIFragment.TAG);
         FragmentTransaction trans = mgr.beginTransaction();
         if (uiFragment == null){
-            UIFragment fragment = UIFragment.newInstance();
+            Log.d("Fragment went ","null");
+            UIFragment fragment = new UIFragment();
             trans.add(R.id.fragment_container, fragment);
             trans.commit();
-        }
+        }*/
     }
 
     @Override
@@ -49,8 +67,5 @@ public class MainActivity extends ActionBarActivity implements UIFragment.OnFrag
     }
 
 
-    @Override
-    public void onFragmentInteraction(String data) {
-        //Toast.makeText(this,data,Toast.LENGTH_SHORT).show();
-    }
+
 }
