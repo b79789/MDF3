@@ -52,6 +52,8 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
     private int currentTrack = 0;
     private int mCurrentState;
     Intent myIntent;
+    ResultReceiver resultReceiver;
+    Bundle result;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -70,11 +72,11 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
         // after onUnbind() has already been called
         if(intent.hasExtra(UIFragment.RC_INTENT)) {
             //Bitmap bitmap = BitmapFactory.decodeResource( getResources(), R.drawable.app_img);
-            ResultReceiver receiver = intent.getParcelableExtra(UIFragment.RC_INTENT);
+            resultReceiver = intent.getParcelableExtra(UIFragment.RC_INTENT);
             Bundle result = new Bundle();
             if (currentTrack >= 0) {
                 result.putString(UIFragment.DATA_RETURNED, artist[currentTrack] + lineSep + title[currentTrack]);
-                receiver.send(UIFragment.RESULT_DATA_RETURNED, result);
+                resultReceiver.send(UIFragment.RESULT_DATA_RETURNED, result);
             }
         }
         intent.getExtras();
@@ -97,7 +99,8 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
-        myIntent = intent;
+        result = new Bundle();
+        resultReceiver= intent.getParcelableExtra(UIFragment.RC_INTENT);
         Collections.addAll(trackList, tracks);
         Uri file = Uri.parse(tracks[this.currentTrack]);
 
@@ -113,11 +116,9 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
             mPlayer.prepareAsync();
             if(intent.hasExtra(UIFragment.RC_INTENT)) {
                 //Bitmap bitmap = BitmapFactory.decodeResource( getResources(), R.drawable.app_img);
-                ResultReceiver receiver = intent.getParcelableExtra(UIFragment.RC_INTENT);
-                Bundle result = new Bundle();
                 if (currentTrack >= 0) {
                     result.putString(UIFragment.DATA_RETURNED, artist[currentTrack] + lineSep + title[currentTrack]);
-                    receiver.send(UIFragment.RESULT_DATA_RETURNED, result);
+                    resultReceiver.send(UIFragment.RESULT_DATA_RETURNED, result);
                 }
             }
             mCurrentState=Player_Prepairing;
@@ -126,15 +127,9 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
                 public void onPrepared(MediaPlayer mp) {
                     mCurrentState=Player_Prepared;
                     mPlayer.start();
-                    Intent intent = myIntent;
-                    if (intent!=null){
-                        if(intent.hasExtra(UIFragment.RC_INTENT)) {
-                            //Bitmap bitmap = BitmapFactory.decodeResource( getResources(), R.drawable.app_img);
-                            ResultReceiver receiver = intent.getParcelableExtra(UIFragment.RC_INTENT);
-                            Bundle result = new Bundle();
-                            if (currentTrack >= 0) {
+                    if (currentTrack >= 0) {
                                 result.putString(UIFragment.DATA_RETURNED, artist[currentTrack] + lineSep + title[currentTrack]);
-                                receiver.send(UIFragment.RESULT_DATA_RETURNED, result);
+                                resultReceiver.send(UIFragment.RESULT_DATA_RETURNED, result);
                                 Intent getActivityIntent = new Intent(getApplication(), MainActivity.class);
                                 getActivityIntent.setAction(Intent.ACTION_MAIN);
                                 getActivityIntent.addCategory(Intent.CATEGORY_LAUNCHER);
@@ -149,19 +144,15 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
                                 builder.setOngoing(true);
                                 startForeground(NOTIFICATION_ID, builder.build());
                             }
-                        }else {
-                            Log.d("Error","No Intent");
+                        else {
+                            Log.d("Error","track is wrong");
                         }
-                    }else {
-                        Log.d("Error","Intent == null");
-                    }
                 }
             });
             mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                 @Override
                 public void onCompletion(MediaPlayer mp) {
                     stopForeground(true);
-                    Intent intent = myIntent;
                     mCurrentState=Player_Completed;
                     currentTrack = (currentTrack + 1) % tracks.length;
                     if (currentTrack >= 0 && currentTrack !=4) {
@@ -173,14 +164,9 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
                             e.printStackTrace();
                         }
                         mPlayer.prepareAsync();
-                        if (intent!=null) {
-                            if (intent.hasExtra(UIFragment.RC_INTENT)) {
-                                //Bitmap bitmap = BitmapFactory.decodeResource( getResources(), R.drawable.app_img);
-                                ResultReceiver receiver = intent.getParcelableExtra(UIFragment.RC_INTENT);
-                                Bundle result = new Bundle();
-                                if (currentTrack >= 0) {
+                        if (currentTrack >= 0) {
                                     result.putString(UIFragment.DATA_RETURNED, artist[currentTrack] + lineSep + title[currentTrack]);
-                                    receiver.send(UIFragment.RESULT_DATA_RETURNED, result);
+                                    resultReceiver.send(UIFragment.RESULT_DATA_RETURNED, result);
                                     Intent getActivityIntent = new Intent(getApplication(), MainActivity.class);
                                     getActivityIntent.setAction(Intent.ACTION_MAIN);
                                     getActivityIntent.addCategory(Intent.CATEGORY_LAUNCHER);
@@ -195,12 +181,9 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
                                     builder.setOngoing(true);
                                     startForeground(NOTIFICATION_ID, builder.build());
 
-                                }
-                            }
-                        }
-
+                         }
                     }else {
-                        Log.d("Error onCompletion"," Something went wrong");
+                        Log.d("Error onCompletion"," track size error");
                     }
 
                 }
@@ -244,7 +227,6 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
     }
 
     public void onSkipForward() {
-        Intent intent = myIntent;
         currentTrack = (currentTrack + 1);
         if (currentTrack>=0 && currentTrack<=3){
             Uri nextTrack = Uri.parse(tracks[currentTrack]);
@@ -255,22 +237,18 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
                 e.printStackTrace();
             }
             mPlayer.prepareAsync();
-            if(intent.hasExtra(UIFragment.RC_INTENT)) {
                 //Bitmap bitmap = BitmapFactory.decodeResource( getResources(), R.drawable.app_img);
-                ResultReceiver receiver = intent.getParcelableExtra(UIFragment.RC_INTENT);
-                Bundle result = new Bundle();
                 if (currentTrack >= 0) {
                     result.putString(UIFragment.DATA_RETURNED, artist[currentTrack] + lineSep + title[currentTrack]);
-                    receiver.send(UIFragment.RESULT_DATA_RETURNED, result);
+                    resultReceiver.send(UIFragment.RESULT_DATA_RETURNED, result);
                 }
-            }
+
         }else {
             Toast.makeText(this,"End of track list",Toast.LENGTH_SHORT).show();
         }
     }
 
     public void onSkipback() {
-        Intent intent = myIntent;
 
         currentTrack = (currentTrack - 1);
         if (currentTrack >= 0  && currentTrack<=3) {
@@ -283,14 +261,9 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
                 e.printStackTrace();
             }
             mPlayer.prepareAsync();
-            if(intent.hasExtra(UIFragment.RC_INTENT)) {
-                //Bitmap bitmap = BitmapFactory.decodeResource( getResources(), R.drawable.app_img);
-                ResultReceiver receiver = intent.getParcelableExtra(UIFragment.RC_INTENT);
-                Bundle result = new Bundle();
-                if (currentTrack >= 0) {
-                    result.putString(UIFragment.DATA_RETURNED, artist[currentTrack] + lineSep + title[currentTrack]);
-                    receiver.send(UIFragment.RESULT_DATA_RETURNED, result);
-                }
+            if (currentTrack >= 0) {
+                result.putString(UIFragment.DATA_RETURNED, artist[currentTrack] + lineSep + title[currentTrack]);
+                resultReceiver.send(UIFragment.RESULT_DATA_RETURNED, result);
             }
         }else {
             Toast.makeText(this,"Beginning of track list",Toast.LENGTH_SHORT).show();
