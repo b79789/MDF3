@@ -15,10 +15,13 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.ResultReceiver;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
+import android.widget.ProgressBar;
+import android.widget.SeekBar;
 import android.widget.Toast;
 import com.brianstacks.servicefundamentals.MainActivity;
 import com.brianstacks.servicefundamentals.R;
@@ -54,12 +57,12 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
     private int currentTrack = 0;
     private int mCurrentState;
 
+
+
     @Override
     public IBinder onBind(Intent intent) {
         resultReceiver = intent.getParcelableExtra(UIFragment.RC_INTENT);
-        result=new Bundle();
-        result.putString(UIFragment.DATA_RETURNED, artist[currentTrack] + lineSep + title[currentTrack]);
-        resultReceiver.send(UIFragment.RESULT_DATA_RETURNED, result);
+
         return new BoundServiceBinder();
     }
 
@@ -93,6 +96,8 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
         Collections.addAll(trackList, tracks);
         Uri file = Uri.parse(tracks[this.currentTrack]);
 
+
+
         if (mPlayer == null ){
             mPlayer = new MediaPlayer();
             mCurrentState=Player_Idle;
@@ -112,8 +117,10 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
                     if (currentTrack >= 0 && currentTrack !=4) {
                         // put track details in the bundle
                         result.putString(UIFragment.DATA_RETURNED, artist[currentTrack] + lineSep + title[currentTrack]);
+                        result.putInt(UIFragment.TEXT_KEY,mPlayer.getDuration());
                         // give the bundle to the results receiver
                         resultReceiver.send(UIFragment.RESULT_DATA_RETURNED, result);
+
                         // create intent for the main activity set the action and cat.
                         Intent getActivityIntent = new Intent(getApplication(), MainActivity.class);
                         getActivityIntent.setAction(Intent.ACTION_MAIN);
@@ -154,6 +161,7 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
                         if (currentTrack >= 0) {
                             // put track details in the bundle
                             result.putString(UIFragment.DATA_RETURNED, artist[currentTrack] + lineSep + title[currentTrack]);
+                            result.putInt(UIFragment.TEXT_KEY,mPlayer.getDuration());
                             // give the bundle to the results receiver
                             resultReceiver.send(UIFragment.RESULT_DATA_RETURNED, result);
                             // create intent for the main activity set the action and cat.
@@ -233,9 +241,11 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
                 public void onPrepared(MediaPlayer mp) {
                     mCurrentState=Player_Prepared;
                     mPlayer.start();
+
                     if (currentTrack >= 0 && currentTrack !=4) {
                         // put track details in the bundle
                         result.putString(UIFragment.DATA_RETURNED, artist[currentTrack] + lineSep + title[currentTrack]);
+                        result.putInt(UIFragment.TEXT_KEY,mPlayer.getDuration());
                         // give the bundle to the results receiver
                         resultReceiver.send(UIFragment.RESULT_DATA_RETURNED, result);
                         // create intent for the main activity set the action and cat.
@@ -278,6 +288,7 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
                         if (currentTrack >= 0) {
                             // put track details in the bundle
                             result.putString(UIFragment.DATA_RETURNED, artist[currentTrack] + lineSep + title[currentTrack]);
+                            result.putInt(UIFragment.TEXT_KEY,mPlayer.getDuration());
                             // give the bundle to the results receiver
                             resultReceiver.send(UIFragment.RESULT_DATA_RETURNED, result);
                             // create intent for the main activity set the action and cat.
@@ -332,6 +343,7 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
                     if (currentTrack >= 0 && currentTrack !=4) {
                         // put track details in the bundle
                         result.putString(UIFragment.DATA_RETURNED, artist[currentTrack] + lineSep + title[currentTrack]);
+                        result.putInt(UIFragment.TEXT_KEY,mPlayer.getDuration());
                         // give the bundle to the results receiver
                         resultReceiver.send(UIFragment.RESULT_DATA_RETURNED, result);
                         // create intent for the main activity set the action and cat.
@@ -374,6 +386,7 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
                         if (currentTrack >= 0) {
                             // put track details in the bundle
                             result.putString(UIFragment.DATA_RETURNED, artist[currentTrack] + lineSep + title[currentTrack]);
+                            result.putInt(UIFragment.TEXT_KEY,mPlayer.getDuration());
                             // give the bundle to the results receiver
                             resultReceiver.send(UIFragment.RESULT_DATA_RETURNED, result);
                             // create intent for the main activity set the action and cat.
@@ -412,58 +425,8 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
     }
 
     public void randomPlay() {
-        if (currentTrack >= 0 && currentTrack <= 3) {
-            Uri nextTrack = Uri.parse(tracks[getRandomNumber(tracks.length)]);
-            mPlayer.reset();
-            try {
-                mPlayer.setDataSource(getApplicationContext(), nextTrack);
+        currentTrack = getRandomNumber(tracks.length);
 
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            mPlayer.prepareAsync();
-            mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                @Override
-                public void onCompletion(MediaPlayer mp) {
-                    stopForeground(true);
-                    mCurrentState=Player_Completed;
-                    if (currentTrack >= 0 && currentTrack !=4) {
-                        Uri nextTrack = Uri.parse(tracks[currentTrack]);
-                        mPlayer.reset();
-                        try {
-                            mPlayer.setDataSource(getApplicationContext(), nextTrack);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                        mPlayer.prepareAsync();
-                            // put track details in the bundle
-                            result.putString(UIFragment.DATA_RETURNED, artist[currentTrack] + lineSep + title[currentTrack]);
-                            // give the bundle to the results receiver
-                            resultReceiver.send(UIFragment.RESULT_DATA_RETURNED, result);
-                            // create intent for the main activity set the action and cat.
-                            Intent getActivityIntent = new Intent(getApplication(), MainActivity.class);
-                            getActivityIntent.setAction(Intent.ACTION_MAIN);
-                            getActivityIntent.addCategory(Intent.CATEGORY_LAUNCHER);
-                            // create pendingIntent for notification
-                            PendingIntent pendingIntent = PendingIntent.getActivity(getApplication(), NOTIFICATION_ID, getActivityIntent, 0);
-                            // create notification and give it's properties
-                            NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext());
-                            builder.setContentIntent(pendingIntent);
-                            builder.setSmallIcon(R.drawable.ic_stat_one);
-                            builder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_stat_one));
-                            builder.setContentTitle(artist[currentTrack]);
-                            builder.setContentText(title[currentTrack]);
-                            builder.setAutoCancel(false);
-                            builder.setOngoing(true);
-                            startForeground(NOTIFICATION_ID, builder.build());
-                    }else {
-                        Log.d("Error onCompletion"," track size error");
-                    }
-
-                }
-            });
-
-        }
     }
 
     public class BoundServiceBinder extends Binder {

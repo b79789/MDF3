@@ -11,6 +11,12 @@
         android:gravity="center"
         android:textStyle="bold"
         />
+    <ProgressBar
+        android:id="@+id/myProgress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        style="@android:style/Widget.ProgressBar.Horizontal"
+        android:layout_marginEnd="5dp" />
     <LinearLayout
 
         android:orientation="vertical"

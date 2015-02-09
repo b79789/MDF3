@@ -25,6 +25,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CompoundButton;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
@@ -37,7 +38,7 @@ import com.brianstacks.servicefundamentals.services.MusicPlayerService;
  */
 public class UIFragment extends Fragment {
 
-    public final String TEXT_KEY = "text";
+    public static final String TEXT_KEY = "text";
 
     public static final String TAG = "UIFragment.TAG";
     public static final String DATA_RETURNED = "MainActivity.DATA_RETURNED";
@@ -50,6 +51,8 @@ public class UIFragment extends Fragment {
     DataReceiver dataReceiver;
     Intent intent;
     SharedPreferences sharedPrefs;
+    private ProgressBar mProgress;
+    private int mProgressStatus = 0;
 
 
     private ServiceConnection mConnection = new ServiceConnection() {
@@ -124,7 +127,9 @@ public class UIFragment extends Fragment {
         Button mSkipB= (Button)getActivity().findViewById(R.id.skipBack);
         Button mStopService= (Button)getActivity().findViewById(R.id.stopService);
         ToggleButton randomButton = (ToggleButton) getActivity().findViewById(R.id.randButton);
+        mProgress=(ProgressBar)getActivity().findViewById(R.id.myProgress);
 
+        //mProgress.setMax();
         mStartService.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -245,6 +250,8 @@ public class UIFragment extends Fragment {
             if(resultData != null && resultData.containsKey(DATA_RETURNED)) {
                 if (mTextView!=null){
                     mTextView.setText(resultData.getString(DATA_RETURNED, ""));
+                    mProgress.setMax(resultData.getInt(TEXT_KEY));
+
                 }else {
                     Log.d("TextView","= null");
 
