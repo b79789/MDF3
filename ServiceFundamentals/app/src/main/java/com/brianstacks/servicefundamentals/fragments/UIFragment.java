@@ -24,8 +24,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ToggleButton;
+
 import com.brianstacks.servicefundamentals.R;
 import com.brianstacks.servicefundamentals.services.MusicPlayerService;
 
@@ -120,6 +123,8 @@ public class UIFragment extends Fragment {
         Button mSkipF = (Button)getActivity().findViewById(R.id.skipForward);
         Button mSkipB= (Button)getActivity().findViewById(R.id.skipBack);
         Button mStopService= (Button)getActivity().findViewById(R.id.stopService);
+        ToggleButton randomButton = (ToggleButton) getActivity().findViewById(R.id.randButton);
+
         mStartService.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -177,6 +182,23 @@ public class UIFragment extends Fragment {
             public void onClick(View v) {
                 if (mBound) {
                     musicPlayerService.onSkipback();
+                }
+            }
+        });
+        randomButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+
+                    // The toggle is enabled
+                    musicPlayerService.randomPlay();
+
+                    Toast.makeText(getActivity().getApplicationContext(), "Shuffle On", Toast.LENGTH_SHORT).show();
+                } else {
+
+                    // The toggle is disabled
+                    musicPlayerService.onPlay();
+                    Toast.makeText(getActivity().getApplicationContext(), "Shuffle Off", Toast.LENGTH_SHORT).show();
                 }
             }
         });

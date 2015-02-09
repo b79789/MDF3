@@ -54,6 +54,15 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/Skip_Backward"/>
+        <TextView
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="Shuffle"/>
+        <ToggleButton
+            android:id="@+id/randButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Random"/>
         <Button
             android:id="@+id/stopService"
             android:layout_width="match_parent"

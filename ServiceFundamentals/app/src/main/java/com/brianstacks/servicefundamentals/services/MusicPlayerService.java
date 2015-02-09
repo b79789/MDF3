@@ -70,6 +70,7 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
         return false;
     }
 
+    @Override
     public void onCreate() {
         super.onCreate();
         mManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
@@ -102,26 +103,24 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
                 Log.e(DEBUG_TAG, "Player failed", e);
             }
             mPlayer.prepareAsync();
-            if(intent.hasExtra(UIFragment.RC_INTENT)) {
-                //Bitmap bitmap = BitmapFactory.decodeResource( getResources(), R.drawable.app_img);
-                if (currentTrack >= 0) {
-                    result.putString(UIFragment.DATA_RETURNED, artist[currentTrack] + lineSep + title[currentTrack]);
-                    resultReceiver.send(UIFragment.RESULT_DATA_RETURNED, result);
-                }
-            }
             mCurrentState=Player_Prepairing;
             mPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
                 @Override
                 public void onPrepared(MediaPlayer mp) {
                     mCurrentState=Player_Prepared;
                     mPlayer.start();
-                    if (currentTrack >= 0) {
+                    if (currentTrack >= 0 && currentTrack !=4) {
+                        // put track details in the bundle
                         result.putString(UIFragment.DATA_RETURNED, artist[currentTrack] + lineSep + title[currentTrack]);
+                        // give the bundle to the results receiver
                         resultReceiver.send(UIFragment.RESULT_DATA_RETURNED, result);
+                        // create intent for the main activity set the action and cat.
                         Intent getActivityIntent = new Intent(getApplication(), MainActivity.class);
                         getActivityIntent.setAction(Intent.ACTION_MAIN);
                         getActivityIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+                        // create pendingIntent for notification
                         PendingIntent pendingIntent = PendingIntent.getActivity(getApplication(), NOTIFICATION_ID, getActivityIntent, 0);
+                        // create notification and give it's properties
                         NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext());
                         builder.setContentIntent(pendingIntent);
                         builder.setSmallIcon(R.drawable.ic_stat_one);
@@ -153,12 +152,17 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
                         }
                         mPlayer.prepareAsync();
                         if (currentTrack >= 0) {
+                            // put track details in the bundle
                             result.putString(UIFragment.DATA_RETURNED, artist[currentTrack] + lineSep + title[currentTrack]);
+                            // give the bundle to the results receiver
                             resultReceiver.send(UIFragment.RESULT_DATA_RETURNED, result);
+                            // create intent for the main activity set the action and cat.
                             Intent getActivityIntent = new Intent(getApplication(), MainActivity.class);
                             getActivityIntent.setAction(Intent.ACTION_MAIN);
                             getActivityIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+                            // create pendingIntent for notification
                             PendingIntent pendingIntent = PendingIntent.getActivity(getApplication(), NOTIFICATION_ID, getActivityIntent, 0);
+                            // create notification and give it's properties
                             NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext());
                             builder.setContentIntent(pendingIntent);
                             builder.setSmallIcon(R.drawable.ic_stat_one);
@@ -224,12 +228,83 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            mPlayer.prepareAsync();
-            //Bitmap bitmap = BitmapFactory.decodeResource( getResources(), R.drawable.app_img);
-            if (currentTrack >= 0) {
-                result.putString(UIFragment.DATA_RETURNED, artist[currentTrack] + lineSep + title[currentTrack]);
-                resultReceiver.send(UIFragment.RESULT_DATA_RETURNED, result);
-            }
+            mPlayer.prepareAsync();mPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+                @Override
+                public void onPrepared(MediaPlayer mp) {
+                    mCurrentState=Player_Prepared;
+                    mPlayer.start();
+                    if (currentTrack >= 0 && currentTrack !=4) {
+                        // put track details in the bundle
+                        result.putString(UIFragment.DATA_RETURNED, artist[currentTrack] + lineSep + title[currentTrack]);
+                        // give the bundle to the results receiver
+                        resultReceiver.send(UIFragment.RESULT_DATA_RETURNED, result);
+                        // create intent for the main activity set the action and cat.
+                        Intent getActivityIntent = new Intent(getApplication(), MainActivity.class);
+                        getActivityIntent.setAction(Intent.ACTION_MAIN);
+                        getActivityIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+                        // create pendingIntent for notification
+                        PendingIntent pendingIntent = PendingIntent.getActivity(getApplication(), NOTIFICATION_ID, getActivityIntent, 0);
+                        // create notification and give it's properties
+                        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext());
+                        builder.setContentIntent(pendingIntent);
+                        builder.setSmallIcon(R.drawable.ic_stat_one);
+                        builder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_stat_one));
+                        builder.setContentTitle(artist[currentTrack]);
+                        builder.setContentText(title[currentTrack]);
+                        builder.setAutoCancel(false);
+                        builder.setOngoing(true);
+                        startForeground(NOTIFICATION_ID, builder.build());
+                    }
+                    else {
+                        Log.d("Error","track is wrong");
+                    }
+                }
+            });
+            mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                @Override
+                public void onCompletion(MediaPlayer mp) {
+                    stopForeground(true);
+                    mCurrentState=Player_Completed;
+                    currentTrack = (currentTrack + 1) % tracks.length;
+                    if (currentTrack >= 0 && currentTrack !=4) {
+                        Uri nextTrack = Uri.parse(tracks[currentTrack]);
+                        mPlayer.reset();
+                        try {
+                            mPlayer.setDataSource(getApplicationContext(), nextTrack);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        mPlayer.prepareAsync();
+                        if (currentTrack >= 0) {
+                            // put track details in the bundle
+                            result.putString(UIFragment.DATA_RETURNED, artist[currentTrack] + lineSep + title[currentTrack]);
+                            // give the bundle to the results receiver
+                            resultReceiver.send(UIFragment.RESULT_DATA_RETURNED, result);
+                            // create intent for the main activity set the action and cat.
+                            Intent getActivityIntent = new Intent(getApplication(), MainActivity.class);
+                            getActivityIntent.setAction(Intent.ACTION_MAIN);
+                            getActivityIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+                            // create pendingIntent for notification
+                            PendingIntent pendingIntent = PendingIntent.getActivity(getApplication(), NOTIFICATION_ID, getActivityIntent, 0);
+                            // create notification and give it's properties
+                            NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext());
+                            builder.setContentIntent(pendingIntent);
+                            builder.setSmallIcon(R.drawable.ic_stat_one);
+                            builder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_stat_one));
+                            builder.setContentTitle(artist[currentTrack]);
+                            builder.setContentText(title[currentTrack]);
+                            builder.setAutoCancel(false);
+                            builder.setOngoing(true);
+                            startForeground(NOTIFICATION_ID, builder.build());
+
+                        }
+                    }else {
+                        Log.d("Error onCompletion"," track size error");
+                    }
+
+                }
+            });
+            mPlayer.setOnErrorListener(this);
 
         }else {
             Toast.makeText(this,"End of track list",Toast.LENGTH_SHORT).show();
@@ -249,12 +324,145 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
                 e.printStackTrace();
             }
             mPlayer.prepareAsync();
-            if (currentTrack >= 0) {
-                result.putString(UIFragment.DATA_RETURNED, artist[currentTrack] + lineSep + title[currentTrack]);
-                resultReceiver.send(UIFragment.RESULT_DATA_RETURNED, result);
-            }
+            mPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+                @Override
+                public void onPrepared(MediaPlayer mp) {
+                    mCurrentState=Player_Prepared;
+                    mPlayer.start();
+                    if (currentTrack >= 0 && currentTrack !=4) {
+                        // put track details in the bundle
+                        result.putString(UIFragment.DATA_RETURNED, artist[currentTrack] + lineSep + title[currentTrack]);
+                        // give the bundle to the results receiver
+                        resultReceiver.send(UIFragment.RESULT_DATA_RETURNED, result);
+                        // create intent for the main activity set the action and cat.
+                        Intent getActivityIntent = new Intent(getApplication(), MainActivity.class);
+                        getActivityIntent.setAction(Intent.ACTION_MAIN);
+                        getActivityIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+                        // create pendingIntent for notification
+                        PendingIntent pendingIntent = PendingIntent.getActivity(getApplication(), NOTIFICATION_ID, getActivityIntent, 0);
+                        // create notification and give it's properties
+                        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext());
+                        builder.setContentIntent(pendingIntent);
+                        builder.setSmallIcon(R.drawable.ic_stat_one);
+                        builder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_stat_one));
+                        builder.setContentTitle(artist[currentTrack]);
+                        builder.setContentText(title[currentTrack]);
+                        builder.setAutoCancel(false);
+                        builder.setOngoing(true);
+                        startForeground(NOTIFICATION_ID, builder.build());
+                    }
+                    else {
+                        Log.d("Error","track is wrong");
+                    }
+                }
+            });
+            mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                @Override
+                public void onCompletion(MediaPlayer mp) {
+                    stopForeground(true);
+                    mCurrentState=Player_Completed;
+                    currentTrack = (currentTrack + 1) % tracks.length;
+                    if (currentTrack >= 0 && currentTrack !=4) {
+                        Uri nextTrack = Uri.parse(tracks[currentTrack]);
+                        mPlayer.reset();
+                        try {
+                            mPlayer.setDataSource(getApplicationContext(), nextTrack);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        mPlayer.prepareAsync();
+                        if (currentTrack >= 0) {
+                            // put track details in the bundle
+                            result.putString(UIFragment.DATA_RETURNED, artist[currentTrack] + lineSep + title[currentTrack]);
+                            // give the bundle to the results receiver
+                            resultReceiver.send(UIFragment.RESULT_DATA_RETURNED, result);
+                            // create intent for the main activity set the action and cat.
+                            Intent getActivityIntent = new Intent(getApplication(), MainActivity.class);
+                            getActivityIntent.setAction(Intent.ACTION_MAIN);
+                            getActivityIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+                            // create pendingIntent for notification
+                            PendingIntent pendingIntent = PendingIntent.getActivity(getApplication(), NOTIFICATION_ID, getActivityIntent, 0);
+                            // create notification and give it's properties
+                            NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext());
+                            builder.setContentIntent(pendingIntent);
+                            builder.setSmallIcon(R.drawable.ic_stat_one);
+                            builder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_stat_one));
+                            builder.setContentTitle(artist[currentTrack]);
+                            builder.setContentText(title[currentTrack]);
+                            builder.setAutoCancel(false);
+                            builder.setOngoing(true);
+                            startForeground(NOTIFICATION_ID, builder.build());
+
+                        }
+                    }else {
+                        Log.d("Error onCompletion"," track size error");
+                    }
+
+                }
+            });
+            mPlayer.setOnErrorListener(this);
         }else {
             Toast.makeText(this,"Beginning of track list",Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public int getRandomNumber(int numberOfElements) {
+        java.util.Random rnd = new java.util.Random();
+        return rnd.nextInt(numberOfElements);
+    }
+
+    public void randomPlay() {
+        if (currentTrack >= 0 && currentTrack <= 3) {
+            Uri nextTrack = Uri.parse(tracks[getRandomNumber(tracks.length)]);
+            mPlayer.reset();
+            try {
+                mPlayer.setDataSource(getApplicationContext(), nextTrack);
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            mPlayer.prepareAsync();
+            mPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                @Override
+                public void onCompletion(MediaPlayer mp) {
+                    stopForeground(true);
+                    mCurrentState=Player_Completed;
+                    if (currentTrack >= 0 && currentTrack !=4) {
+                        Uri nextTrack = Uri.parse(tracks[currentTrack]);
+                        mPlayer.reset();
+                        try {
+                            mPlayer.setDataSource(getApplicationContext(), nextTrack);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                        mPlayer.prepareAsync();
+                            // put track details in the bundle
+                            result.putString(UIFragment.DATA_RETURNED, artist[currentTrack] + lineSep + title[currentTrack]);
+                            // give the bundle to the results receiver
+                            resultReceiver.send(UIFragment.RESULT_DATA_RETURNED, result);
+                            // create intent for the main activity set the action and cat.
+                            Intent getActivityIntent = new Intent(getApplication(), MainActivity.class);
+                            getActivityIntent.setAction(Intent.ACTION_MAIN);
+                            getActivityIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+                            // create pendingIntent for notification
+                            PendingIntent pendingIntent = PendingIntent.getActivity(getApplication(), NOTIFICATION_ID, getActivityIntent, 0);
+                            // create notification and give it's properties
+                            NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext());
+                            builder.setContentIntent(pendingIntent);
+                            builder.setSmallIcon(R.drawable.ic_stat_one);
+                            builder.setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.ic_stat_one));
+                            builder.setContentTitle(artist[currentTrack]);
+                            builder.setContentText(title[currentTrack]);
+                            builder.setAutoCancel(false);
+                            builder.setOngoing(true);
+                            startForeground(NOTIFICATION_ID, builder.build());
+                    }else {
+                        Log.d("Error onCompletion"," track size error");
+                    }
+
+                }
+            });
+
         }
     }
 
