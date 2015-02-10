@@ -27,8 +27,13 @@ public class MainActivity extends ActionBarActivity{
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        if (savedInstanceState != null) { // saved instance state, fragment may exist
+        if (savedInstanceState == null){
+            UIFragment uiFragment = new UIFragment();
+            getFragmentManager().beginTransaction().add(R.id.fragment_container,uiFragment).commit();
+        }
+       /* if (savedInstanceState == null) { // saved instance state, fragment may exist
             // look up the instance that already exists by tag
+
              fragmentSimple = (UIFragment)getFragmentManager().findFragmentByTag(SIMPLE_FRAGMENT_TAG);
         } else if (fragmentSimple == null) {
             // only create fragment if they haven't been instantiated already
@@ -38,7 +43,7 @@ public class MainActivity extends ActionBarActivity{
                     .beginTransaction()
                     .replace(R.id.fragment_container, fragmentSimple, SIMPLE_FRAGMENT_TAG)
                     .commit();
-        }
+        }*/
        /* FragmentManager mgr = getFragmentManager();
         UIFragment uiFragment = (UIFragment) mgr.findFragmentByTag(UIFragment.TAG);
         FragmentTransaction trans = mgr.beginTransaction();
