@@ -14,6 +14,7 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.ResultReceiver;
 import android.support.v4.app.NotificationCompat;
@@ -41,8 +42,11 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
     final int[]pics ={R.drawable.katy,R.drawable.araab,R.drawable.trophie,R.drawable.maroon};
     MediaPlayer mPlayer;
     ResultReceiver resultReceiver;
+    ResultReceiver progressReciever;
     Bundle result;
     private int currentTrack = 0;
+    private int progressStatus = 0;
+    private Handler handler = new Handler();
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -71,6 +75,7 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
         ArrayList<String> trackList=new ArrayList<>();
         result = new Bundle();
         resultReceiver= intent.getParcelableExtra(UIFragment.RC_INTENT);
+        progressReciever= intent.getParcelableExtra(UIFragment.P_INTENT);
         Collections.addAll(trackList, tracks);
         Uri file = Uri.parse(tracks[this.currentTrack]);
         if (mPlayer == null ){
@@ -105,14 +110,11 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
                 e.printStackTrace();
             }
             mPlayer.prepareAsync();
-            if (currentTrack >= 0) {
-                // put track details in the bundle
-                result.putString(UIFragment.DATA_RETURNED, artist[currentTrack] + lineSep + title[currentTrack]);
-                // give the bundle to the results receiver
-                resultReceiver.send(UIFragment.RESULT_DATA_RETURNED, result);
-                showNotification();
-
-            }
+            // put track details in the bundle
+            result.putString(UIFragment.DATA_RETURNED, artist[currentTrack] + lineSep + title[currentTrack]);
+            // give the bundle to the results receiver
+            resultReceiver.send(UIFragment.RESULT_DATA_RETURNED, result);
+            showNotification();
         }else {
             Log.d("Error onCompletion"," track size error");
         }
@@ -122,10 +124,35 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
     public void onPrepared(MediaPlayer mp) {
         mPlayer.start();
         if (currentTrack >= 0 && currentTrack !=4) {
-            // put track details in the bundle
-            result.putString(UIFragment.DATA_RETURNED, artist[currentTrack] + lineSep + title[currentTrack]);
-            // give the bundle to the results receiver
-            resultReceiver.send(UIFragment.RESULT_DATA_RETURNED, result);
+            // Start long running operation in a background thread
+            new Thread(new Runnable() {
+                public void run() {
+                    while (progressStatus < 1000) {
+                        progressStatus += 1;
+                        // Update the progress bar and display the
+                        //current value in the text view
+                        handler.post(new Runnable() {
+                            public void run() {
+                                if (mPlayer.isPlaying()){
+                                    result.putInt(UIFragment.MAX_KEY,mPlayer.getDuration());
+                                    result.putInt(UIFragment.PROGRESS_KEY,mPlayer.getCurrentPosition());
+                                    progressReciever.send(UIFragment.RESULT_DATA_RETURNED, result);
+                                }
+
+                            }
+                        });
+                        try {
+                            // Sleep for 200 milliseconds.
+                            //Just to display the progress slowly
+                            Thread.sleep(200);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }).start();
+
+
             showNotification();
         }
         else {
@@ -141,7 +168,7 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
     }
 
     public void onPause() {
-        if (mPlayer!=null) {
+        if (mPlayer.isPlaying()) {
             mPlayer.pause();
         }else{
             Toast.makeText(this,"The media player isn't playing",Toast.LENGTH_SHORT).show();
@@ -173,6 +200,11 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
                 e.printStackTrace();
             }
             mPlayer.prepareAsync();
+            // put track details in the bundle
+            result.putString(UIFragment.DATA_RETURNED, artist[currentTrack] + lineSep + title[currentTrack]);
+            // give the bundle to the results receiver
+            resultReceiver.send(UIFragment.RESULT_DATA_RETURNED, result);
+            showNotification();
             mPlayer.setOnPreparedListener(this);
             mPlayer.setOnCompletionListener(this);
             mPlayer.setOnErrorListener(this);
@@ -182,7 +214,7 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
         }
     }
 
-    public void onSkipback() {
+    public void onSkipBack() {
 
         currentTrack = (currentTrack - 1);
         if (currentTrack >= 0  && currentTrack<=3) {
@@ -195,6 +227,11 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
                 e.printStackTrace();
             }
             mPlayer.prepareAsync();
+            // put track details in the bundle
+            result.putString(UIFragment.DATA_RETURNED, artist[currentTrack] + lineSep + title[currentTrack]);
+            // give the bundle to the results receiver
+            resultReceiver.send(UIFragment.RESULT_DATA_RETURNED, result);
+            showNotification();
             mPlayer.setOnPreparedListener(this);
             mPlayer.setOnCompletionListener(this);
             mPlayer.setOnErrorListener(this);
@@ -236,5 +273,7 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
             return MusicPlayerService.this;
         }
     }
+
+
 
 }
