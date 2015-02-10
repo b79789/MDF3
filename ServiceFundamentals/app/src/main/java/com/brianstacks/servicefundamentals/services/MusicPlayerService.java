@@ -44,26 +44,17 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
     Bundle result;
     private int currentTrack = 0;
 
-
-
     @Override
     public IBinder onBind(Intent intent) {
         resultReceiver = intent.getParcelableExtra(UIFragment.RC_INTENT);
-
         return new BoundServiceBinder();
     }
 
     @Override
     public boolean onUnbind(Intent intent) {
-
-
         return false;
     }
 
-    @Override
-    public void onCreate() {
-        super.onCreate();
-    }
 
     @Override
     public void onDestroy() {
@@ -90,6 +81,7 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
                 Log.e(DEBUG_TAG, "Player failed", e);
             }
             mPlayer.prepareAsync();
+            result.putString(UIFragment.DATA_RETURNED, artist[currentTrack] + lineSep + title[currentTrack]);
             resultReceiver.send(UIFragment.RESULT_DATA_RETURNED, result);
             mPlayer.setOnPreparedListener(this);
             mPlayer.setOnCompletionListener(this);
