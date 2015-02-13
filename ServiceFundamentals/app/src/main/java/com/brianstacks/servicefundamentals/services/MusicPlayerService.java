@@ -48,32 +48,37 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
     private int progressStatus = 0;
     Handler handler;
     boolean isRandom = false;
+    boolean isActive = true;
+    Thread thread;
 
 
     Runnable runnable = new Runnable() {
         public void run() {
-            while (progressStatus < 1000) {
-                progressStatus += 1;
-                // Update the progress bar and display the
-                //current value in the text view
-                handler.post(new Runnable() {
-                    public void run() {
-                        if (result  !=null){
-                            result.putInt(UIFragment.MAX_KEY,mPlayer.getDuration());
-                            result.putInt(UIFragment.PROGRESS_KEY,mPlayer.getCurrentPosition());
-                            progressReciever.send(UIFragment.RESULT_DATA_RETURNED, result);
-                        }else {
-                            Log.d("Player","is null");
+            while (isActive) {
+                while (progressStatus < 1000) {
+                    progressStatus += 1;
+                    // Update the progress bar and display the
+                    //current value in the text view
+                    handler.post(new Runnable() {
+                        public void run() {
+                            if (result != null) {
+                                result.putInt(UIFragment.MAX_KEY, mPlayer.getDuration());
+                                result.putInt(UIFragment.PROGRESS_KEY, mPlayer.getCurrentPosition());
+                                progressReciever.send(UIFragment.RESULT_DATA_RETURNED, result);
+                            } else {
+                                Log.d("Player", "is null");
+                            }
                         }
+                    });
+                    try {
+                        // Sleep for 200 milliseconds.
+                        //Just to display the progress slowly
+                        Thread.sleep(200);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
                     }
-                });
-                try {
-                    // Sleep for 200 milliseconds.
-                    //Just to display the progress slowly
-                    Thread.sleep(200);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
                 }
+
             }
         }
     };
@@ -81,6 +86,7 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
     @Override
     public IBinder onBind(Intent intent) {
         resultReceiver = intent.getParcelableExtra(UIFragment.RC_INTENT);
+        progressReciever=intent.getParcelableExtra(UIFragment.P_INTENT);
         return new BoundServiceBinder();
     }
 
@@ -93,7 +99,7 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
     public void onDestroy() {
         super.onDestroy();
         stopForeground(true);
-        handler.removeCallbacks(runnable);
+        isActive=false;
         if (mPlayer !=null){
             mPlayer.release();
         }
@@ -130,13 +136,15 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
     @Override
     public void onPrepared(MediaPlayer mp) {
         mPlayer.start();
-        if (currentTrack >= 0 && currentTrack !=4) {
+        isActive=true;
+        if (currentTrack >= 0 && currentTrack <4) {
             result.putString(UIFragment.DATA_RETURNED, artist[currentTrack] + lineSep + title[currentTrack]);
             // give the bundle to the results receiver
             resultReceiver.send(UIFragment.RESULT_DATA_RETURNED, result);
             // Start long running operation in a background thread
             handler=new Handler();
-            new Thread(runnable).start();
+            thread= new Thread(runnable);
+            thread.start();
             showNotification();
         }
         else {
@@ -147,9 +155,14 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
 
     @Override
     public void onCompletion(MediaPlayer mp) {
+        isActive=false;
         stopForeground(true);
-        currentTrack = (currentTrack + 1) % tracks.length;
-        if (currentTrack >= 0 && currentTrack !=4) {
+        if (isRandom){
+            currentTrack=getRandomNumber(tracks.length);
+        }else {
+            currentTrack = (currentTrack + 1) % tracks.length;
+        }
+        if (currentTrack >= 0 && currentTrack <4) {
             Uri nextTrack = Uri.parse(tracks[currentTrack]);
             mPlayer.reset();
             try {
@@ -198,8 +211,12 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
     }
 
     public void onSkipForward() {
-        currentTrack = (currentTrack + 1);
-        if (currentTrack>=0 && currentTrack<=3){
+        if (isRandom){
+            currentTrack=getRandomNumber(tracks.length);
+        }else {
+            currentTrack = (currentTrack + 1);
+        }
+        if (currentTrack>=0 && currentTrack<4){
             Uri nextTrack = Uri.parse(tracks[currentTrack]);
             mPlayer.reset();
             try {
@@ -224,8 +241,12 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
 
     public void onSkipBack() {
 
-        currentTrack = (currentTrack - 1);
-        if (currentTrack >= 0  && currentTrack<=3) {
+        if (isRandom){
+            currentTrack=getRandomNumber(tracks.length);
+        }else {
+            currentTrack = (currentTrack - 1);
+        }
+        if (currentTrack >= 0  && currentTrack<4) {
             Uri nextTrack = Uri.parse(tracks[currentTrack]);
             mPlayer.reset();
             try {

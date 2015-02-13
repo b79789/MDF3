@@ -39,14 +39,14 @@ import com.brianstacks.servicefundamentals.services.MusicPlayerService;
 public class UIFragment extends Fragment  {
 
     private OnFragmentInteractionListener mListener;
-
+    public static final String TAG = "UIFragment.TAG";
     public static final String MAX_KEY = "MaxDuration";
     public static final String PROGRESS_KEY = "CurrentProgress";
     public static final String DATA_RETURNED = "MainActivity.DATA_RETURNED";
     public static final int RESULT_DATA_RETURNED = 0x0101010;
     public static final String RC_INTENT = "com.brianstacks..servicefundamentals.RC_INTENT";
     public static final String P_INTENT = "com.brianstacks..servicefundamentals.P_INTENT";
-
+    TextView mTextView;
 
 
 
@@ -62,29 +62,37 @@ public class UIFragment extends Fragment  {
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
+        Log.d("onSaveInstanceState","In On onSaveInstanceState");
+
+        // Remember the current text, to restore if we later restart.
+        outState.putCharSequence("text",mTextView.getText());
+
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // Retain this fragment across configuration changes.
-        setRetainInstance(true);
+        Log.d("onCreate","In On Create");
 
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        if (savedInstanceState != null) {
-            // Do something with value if needed
-        }
+        Log.d("onCreateView","In On onCreateView");
         return inflater.inflate(R.layout.fragment_ui, container, false);
     }
 
     @Override
-    public void onActivityCreated(Bundle savedInstance){
-        super.onActivityCreated(savedInstance);
+    public void onActivityCreated(Bundle savedInstanceState){
+        super.onActivityCreated(savedInstanceState);
+        Log.d("onActivityCreated","In On onActivityCreated");
+        mTextView=(TextView)getActivity().findViewById(R.id.trackText);
+
+        if (savedInstanceState != null) {
+            // Do something with value if needed
+            mTextView.setText(savedInstanceState.getCharSequence("text"));
+        }
 
         mListener.onFragmentInteraction();
 
@@ -93,14 +101,15 @@ public class UIFragment extends Fragment  {
     @Override
     public void onPause() {
         super.onPause();
+        Log.d("onPause","In On onPause");
+
 
     }
 
     @Override
     public void onResume(){
         super.onResume();
-
-
+        Log.d("onResume","In On onResume");
 
     }
 
@@ -109,6 +118,7 @@ public class UIFragment extends Fragment  {
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
+        Log.d("onAttach","In On onAttach");
         try {
             mListener = (OnFragmentInteractionListener) activity;
         } catch (ClassCastException e) {
@@ -122,6 +132,7 @@ public class UIFragment extends Fragment  {
         public void onFragmentInteraction( );
 
     }
+
 
 
 }

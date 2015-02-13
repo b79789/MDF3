@@ -200,28 +200,18 @@ public class MainActivity extends ActionBarActivity implements OnFragmentInterac
                 }
             }
         });
-        randomButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        randomButton.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if (isChecked) {
-                    if (musicPlayerService != null){
-                        // The toggle is enabled
-                        musicPlayerService.randomPlay();
-                    }else {
-                        Log.d(" randomButton"," musicPlayerService == null");
-                    }
-
-
-
-                    Toast.makeText(getApplicationContext(), "Shuffle On", Toast.LENGTH_SHORT).show();
+            public void onClick(View v) {
+                if (musicPlayerService != null) {
+                    // The toggle is enabled
+                    musicPlayerService.randomPlay();
                 } else {
-
-                    // The toggle is disabled
-                    musicPlayerService.onPlay();
-                    Toast.makeText(getApplicationContext(), "Shuffle Off", Toast.LENGTH_SHORT).show();
+                    Log.d(" randomButton", " musicPlayerService == null");
                 }
             }
         });
+
     }
 
     public class progressReceiver extends ResultReceiver {
