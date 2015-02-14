@@ -1,0 +1,43 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+xmlns:tools="http://schemas.android.com/tools"
+android:layout_width="match_parent"
+android:layout_height="match_parent"
+android:orientation="vertical"
+tools:context="com.brianstacks.multi_activityapp.Fragments.DetailFragment">
+
+<!-- TODO: Update blank fragment layout -->
+<TextView android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="Name"
+    android:textAllCaps="true"
+    android:textStyle="bold"/>
+<TextView
+    android:id="@+id/text1" android:layout_width="wrap_content"
+    android:layout_height="wrap_content" />
+<TextView android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="Age"
+    android:textAllCaps="true"
+    android:textStyle="bold"/>
+<TextView android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:id="@+id/text2"/>
+    <TextView android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Eye Color"
+        android:textAllCaps="true"
+        android:textStyle="bold"/>
+    <TextView android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/text3"/>
+<Button
+    android:id="@+id/closeButton"
+
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="Close"
+    android:layout_gravity="center"
+    android:layout_marginTop="2dp"/>
+
+
+</LinearLayout>
