@@ -49,37 +49,19 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
     Handler handler;
     boolean isRandom = false;
     boolean isActive = true;
-    Thread thread;
 
+    private Runnable r = new Runnable() {
 
-    Runnable runnable = new Runnable() {
         public void run() {
-            while (isActive) {
-                while (progressStatus < 1000) {
-                    progressStatus += 1;
-                    // Update the progress bar and display the
-                    //current value in the text view
-                    handler.post(new Runnable() {
-                        public void run() {
-                            if (result != null) {
-                                result.putInt(UIFragment.MAX_KEY, mPlayer.getDuration());
-                                result.putInt(UIFragment.PROGRESS_KEY, mPlayer.getCurrentPosition());
-                                progressReciever.send(UIFragment.RESULT_DATA_RETURNED, result);
-                            } else {
-                                Log.d("Player", "is null");
-                            }
-                        }
-                    });
-                    try {
-                        // Sleep for 200 milliseconds.
-                        //Just to display the progress slowly
-                        Thread.sleep(200);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
+            if (result != null) {
+                result.putInt(UIFragment.MAX_KEY, mPlayer.getDuration());
+                result.putInt(UIFragment.PROGRESS_KEY, mPlayer.getCurrentPosition());
+                progressReciever.send(UIFragment.RESULT_DATA_RETURNED, result);
 
+            } else {
+                Log.d("Player", "is null");
             }
+            handler.postDelayed(this, 1000);
         }
     };
 
@@ -100,6 +82,7 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
         super.onDestroy();
         stopForeground(true);
         isActive=false;
+        handler.removeCallbacks(r);
         if (mPlayer !=null){
             mPlayer.release();
         }
@@ -143,8 +126,7 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
             resultReceiver.send(UIFragment.RESULT_DATA_RETURNED, result);
             // Start long running operation in a background thread
             handler=new Handler();
-            thread= new Thread(runnable);
-            thread.start();
+            handler.postDelayed(r, 1000);
             showNotification();
         }
         else {
@@ -302,5 +284,14 @@ public class MusicPlayerService extends Service implements MediaPlayer.OnErrorLi
         public MusicPlayerService getService() {
             return MusicPlayerService.this;
         }
+    }
+
+    public void setReceiver(){
+        // put track details in the bundle
+        result.putString(UIFragment.DATA_RETURNED, artist[currentTrack] + lineSep + title[currentTrack]);
+        // give the bundle to the results receiver
+        resultReceiver.send(UIFragment.RESULT_DATA_RETURNED, result);
+        handler=new Handler();
+        handler.postDelayed(r, 1000);
     }
 }

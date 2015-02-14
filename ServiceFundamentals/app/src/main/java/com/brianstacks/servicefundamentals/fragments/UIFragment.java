@@ -26,10 +26,12 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.ProgressBar;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
+import com.brianstacks.servicefundamentals.MainActivity;
 import com.brianstacks.servicefundamentals.R;
 import com.brianstacks.servicefundamentals.services.MusicPlayerService;
 
@@ -38,7 +40,6 @@ import com.brianstacks.servicefundamentals.services.MusicPlayerService;
  */
 public class UIFragment extends Fragment  {
 
-    private OnFragmentInteractionListener mListener;
     public static final String TAG = "UIFragment.TAG";
     public static final String MAX_KEY = "MaxDuration";
     public static final String PROGRESS_KEY = "CurrentProgress";
@@ -46,11 +47,14 @@ public class UIFragment extends Fragment  {
     public static final int RESULT_DATA_RETURNED = 0x0101010;
     public static final String RC_INTENT = "com.brianstacks..servicefundamentals.RC_INTENT";
     public static final String P_INTENT = "com.brianstacks..servicefundamentals.P_INTENT";
+    private static final String KEY_CURRENT_PROGRESS = "current_progress";
+    private static final String KEY_TEXT = "percent_progress";
     TextView mTextView;
-
-
-
-
+    boolean mBound = false;
+    MusicPlayerService musicPlayerService;
+    Intent intent;
+    private SeekBar mProgress;
+    private final Handler mHandler = new Handler();
 
 
 
@@ -58,22 +62,32 @@ public class UIFragment extends Fragment  {
         // Required empty public constructor
     }
 
-    // Fires when a configuration change occurs and fragment needs to save state
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        Log.d("onSaveInstanceState","In On onSaveInstanceState");
 
-        // Remember the current text, to restore if we later restart.
-        outState.putCharSequence("text",mTextView.getText());
+    public ServiceConnection mConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
 
-    }
+            MusicPlayerService.BoundServiceBinder binder = (MusicPlayerService.BoundServiceBinder) service;
+            musicPlayerService= binder.getService();
+            mBound = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+
+            mBound = false;
+            Toast.makeText(getActivity().getApplicationContext(), "Disconnected" + name.toString(), Toast.LENGTH_SHORT).show();
+        }
+    };
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.d("onCreate","In On Create");
-
+        Log.d("onCreate", "In On Create");
+        intent = new Intent(getActivity().getApplicationContext(), MusicPlayerService.class);
+        intent.putExtra(RC_INTENT,new DataReceiver());
+        intent.putExtra(P_INTENT,new progressReceiver());
     }
 
     @Override
@@ -88,51 +102,152 @@ public class UIFragment extends Fragment  {
         super.onActivityCreated(savedInstanceState);
         Log.d("onActivityCreated","In On onActivityCreated");
         mTextView=(TextView)getActivity().findViewById(R.id.trackText);
-
-        if (savedInstanceState != null) {
-            // Do something with value if needed
-            mTextView.setText(savedInstanceState.getCharSequence("text"));
+        mProgress=(SeekBar)getActivity().findViewById(R.id.myProgress);
+        Button mStartService = (Button)getActivity().findViewById(R.id.startService);
+        Button mPlay= (Button)getActivity().findViewById(R.id.playButton);
+        Button mPause= (Button)getActivity().findViewById(R.id.pauseButton);
+        Button mStop= (Button)getActivity().findViewById(R.id.stopButton);
+        Button mSkipF = (Button)getActivity().findViewById(R.id.skipForward);
+        Button mSkipB= (Button)getActivity().findViewById(R.id.skipBack);
+        Button mStopService= (Button)getActivity().findViewById(R.id.stopService);
+        ToggleButton randomButton = (ToggleButton)getActivity().findViewById(R.id.randButton);
+        if (musicPlayerService != null){
+            musicPlayerService.setReceiver();
         }
 
-        mListener.onFragmentInteraction();
+        //mProgress.setMax();
+        mStartService.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getActivity().startService(intent);
+            }
+        });
+        mStopService.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                getActivity().stopService(intent);
+            }
+        });
+        mPlay.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mBound){
+                    //musicPlayerService.showToast();
+                    musicPlayerService.onPlay();
+                }
+
+            }
+        });
+        mPause.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mBound) {
+                    musicPlayerService.onPause();
+                }
+
+            }
+        });
+        mStop.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mBound) {
+                    musicPlayerService.onStop();
+                }
+            }
+        });
+        mSkipF.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mBound) {
+                    musicPlayerService.onSkipForward();
+                }
+            }
+        });
+        mSkipB.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mBound) {
+                    musicPlayerService.onSkipBack();
+                }
+            }
+        });
+        randomButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (musicPlayerService != null) {
+                    // The toggle is enabled
+                    musicPlayerService.randomPlay();
+                } else {
+                    Log.d(" randomButton", " musicPlayerService == null");
+                }
+            }
+        });
 
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        Log.d("onPause","In On onPause");
-
-
-    }
-
-    @Override
-    public void onResume(){
-        super.onResume();
-        Log.d("onResume","In On onResume");
-
-    }
-
-
-
-    @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
-        Log.d("onAttach","In On onAttach");
-        try {
-            mListener = (OnFragmentInteractionListener) activity;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString()
-                    + " must implement OnFragmentInteractionListener");
+        if (mBound ){
+            getActivity().unbindService(mConnection);
+            mBound=false;
         }
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (!mBound) {
 
-    public interface OnFragmentInteractionListener {
-        public void onFragmentInteraction( );
+            getActivity().bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+
+        } else {
+            Log.v("error", "In frags on onResume and was still bound");
+
+        }
 
     }
 
 
+
+
+    public class progressReceiver extends ResultReceiver {
+        public progressReceiver() {
+            super(mHandler);
+        }
+
+        @Override
+        protected void onReceiveResult(int resultCode, Bundle resultData) {
+
+            if(resultData != null && resultData.containsKey(DATA_RETURNED)) {
+                if (mProgress!=null){
+                    mProgress.setMax(resultData.getInt(MAX_KEY));
+                    mProgress.setProgress(resultData.getInt(PROGRESS_KEY));
+                }
+
+
+            }
+        }
+    }
+
+    public class DataReceiver extends ResultReceiver {
+        public DataReceiver() {
+            super(mHandler);
+        }
+
+        @Override
+        protected void onReceiveResult(int resultCode, Bundle resultData) {
+            if(resultData != null && resultData.containsKey(DATA_RETURNED)) {
+                if (mTextView!=null){
+                    mTextView.setText(resultData.getString(DATA_RETURNED, ""));
+
+                }else {
+                    Log.d("TextView","= null");
+
+                }
+            }
+        }
+    }
 
 }
