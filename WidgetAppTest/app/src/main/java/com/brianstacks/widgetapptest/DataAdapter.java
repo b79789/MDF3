@@ -1,3 +1,8 @@
+/**
+ *Created by Brian Stacks
+ on 2/9/15
+ for FullSail.edu.
+ */
 package com.brianstacks.widgetapptest;
 
 import android.content.Context;
@@ -9,11 +14,7 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
-/**
- * Created by Brian Stacks
- * on 12/9/14
- * for FullSail.edu.
- */
+
 public class DataAdapter extends BaseAdapter {
     private static final long ID_CONSTANT = 0x010101010L;
     private Context context;

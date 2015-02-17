@@ -1,3 +1,8 @@
+/**
+ *Created by Brian Stacks
+ on 2/9/15
+ for FullSail.edu.
+ */
 package com.brianstacks.widgetapptest;
 
 import android.app.Activity;
@@ -8,21 +13,15 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.net.Uri;
 import android.os.Bundle;
-import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ListView;
-import android.widget.RemoteViews;
-import android.widget.Toast;
-
 import com.brianstacks.widgetapptest.CollectionWidget.CollectionWidgetProvider;
 import com.brianstacks.widgetapptest.Fragments.EnterDataFragment;
 import com.brianstacks.widgetapptest.Fragments.MyListFragment;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -31,7 +30,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
-import java.util.Date;
+
 
 
 public class MainActivity extends Activity implements EnterDataFragment.OnFragmentInteractionListener{
@@ -39,7 +38,6 @@ public class MainActivity extends Activity implements EnterDataFragment.OnFragme
     ArrayList<EnteredData> enteredDataArrayList;
     public static final String fileName = "enteredData";
     CustomReceiver mReceiver;
-    public static final String ACTION_CUSTOM = "com.brianstacks.android.ACTION_CUSTOM";
     public static final String UPDATE_LIST ="com.brianstacks.android.UPDATE_LIST";
 
 
@@ -79,17 +77,14 @@ public class MainActivity extends Activity implements EnterDataFragment.OnFragme
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            enteredDataArrayList = simpleClass;
             if (simpleClass != null) {
-                Log.v("arraySize", String.valueOf(simpleClass.size()));
+                enteredDataArrayList = simpleClass;
             }
             getIntent().putExtra("enteredDataArrayList", enteredDataArrayList);
             FragmentTransaction trans = getFragmentManager().beginTransaction();
             MyListFragment listFrag =  MyListFragment.newInstance(enteredDataArrayList);
             trans.replace(R.id.fragment_container, listFrag, MyListFragment.TAG);
             trans.commit();
-            Intent broadcast = new Intent(ACTION_CUSTOM);
-            sendBroadcast(broadcast);
         }else {
             MyListFragment myListFragment = new MyListFragment();
             getFragmentManager().beginTransaction()
@@ -97,8 +92,6 @@ public class MainActivity extends Activity implements EnterDataFragment.OnFragme
                     .commit();
             enteredDataArrayList = new ArrayList<>();
             getIntent().putExtra("enteredDataArrayList", enteredDataArrayList);
-            Intent broadcast = new Intent(ACTION_CUSTOM);
-            sendBroadcast(broadcast);
         }
     }
 
@@ -125,8 +118,6 @@ public class MainActivity extends Activity implements EnterDataFragment.OnFragme
         return super.onOptionsItemSelected(item);
     }
 
-
-
     public  void addDetailsClick(View v) {
 
         FragmentTransaction trans = getFragmentManager().beginTransaction();
@@ -137,7 +128,6 @@ public class MainActivity extends Activity implements EnterDataFragment.OnFragme
 
     @Override
     public void onFragmentInteraction2(EnteredData enteredData) {
-        Log.d("Name", enteredData.getName());
         enteredDataArrayList.add(enteredData);
         FileOutputStream fos = null;
         try {
@@ -174,7 +164,7 @@ public class MainActivity extends Activity implements EnterDataFragment.OnFragme
         }
 
         //update widget
-        Intent broadcast = new Intent(ACTION_CUSTOM);
+        Intent broadcast = new Intent(UPDATE_LIST);
         sendBroadcast(broadcast);
 
         MyListFragment listFrag = (MyListFragment) getFragmentManager().findFragmentByTag(MyListFragment.TAG);
@@ -187,30 +177,22 @@ public class MainActivity extends Activity implements EnterDataFragment.OnFragme
 
 
         } else {
-            Toast.makeText(this, "Listfrag is not null", Toast.LENGTH_SHORT).show();
             DataAdapter dataAdapter = new DataAdapter(this, enteredDataArrayList);
             ListView myList = (ListView) findViewById(R.id.myList);
             myList.setAdapter(dataAdapter);
         }
     }
 
-    public boolean fileExists(Context context, String filename) {
-        File file = context.getFileStreamPath(filename);
-        return !(file == null || !file.exists());
-    }
-
     public class CustomReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
             // Intent handled here.
-            Log.i("TAG", "Intent recieved: " + intent.getAction());
+             if (intent.getAction().equals(UPDATE_LIST)){
+                Log.d("TAG", "When in update list");
 
-            if (intent.getAction() == ACTION_CUSTOM) {
-                Bundle bundle = intent.getExtras();
-                if (bundle != null) {
-                    Toast.makeText(getApplicationContext(),"Worked from activity",Toast.LENGTH_SHORT).show();
-
-                }
+                AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
+                int appWidgetIds[] = appWidgetManager.getAppWidgetIds(new ComponentName(context, CollectionWidgetProvider.class));
+                appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetIds, R.id.article_list);
             }
         }
     }
@@ -223,7 +205,7 @@ public class MainActivity extends Activity implements EnterDataFragment.OnFragme
         mReceiver = new CustomReceiver();
 
         IntentFilter filter = new IntentFilter();
-        filter.addAction(ACTION_CUSTOM);
+        filter.addAction(UPDATE_LIST);
         registerReceiver(mReceiver, filter);
     }
 
@@ -234,5 +216,8 @@ public class MainActivity extends Activity implements EnterDataFragment.OnFragme
         unregisterReceiver(mReceiver);
     }
 
-
+    public boolean fileExists(Context context, String filename) {
+        File file = context.getFileStreamPath(filename);
+        return !(file == null || !file.exists());
+    }
 }

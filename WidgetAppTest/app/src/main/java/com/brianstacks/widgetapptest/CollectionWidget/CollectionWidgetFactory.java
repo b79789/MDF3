@@ -1,3 +1,8 @@
+/**
+ *Created by Brian Stacks
+ on 2/9/15
+ for FullSail.edu.
+ */
 package com.brianstacks.widgetapptest.CollectionWidget;
 
 import android.content.Context;
@@ -15,11 +20,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.ArrayList;
 
-/**
- * Created by Brian Stacks
- * on 1/19/15
- * for FullSail.edu.
- */
 public class CollectionWidgetFactory implements RemoteViewsService.RemoteViewsFactory {
 
     private static final int ID_CONSTANT = 0x0101010;
@@ -34,7 +34,6 @@ public class CollectionWidgetFactory implements RemoteViewsService.RemoteViewsFa
 
     @Override
     public void onCreate() {
-
 
         FileInputStream fis = null;
         try {

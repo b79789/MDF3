@@ -1,3 +1,8 @@
+/**
+ *Created by Brian Stacks
+ on 2/9/15
+ for FullSail.edu.
+ */
 package com.brianstacks.widgetapptest.Fragments;
 
 

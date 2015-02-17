@@ -1,9 +1,13 @@
+/**
+ *Created by Brian Stacks
+ on 2/9/15
+ for FullSail.edu.
+ */
 package com.brianstacks.widgetapptest.CollectionWidget;
 
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.widget.RemoteViews;
@@ -13,17 +17,13 @@ import com.brianstacks.widgetapptest.EnteredData;
 import com.brianstacks.widgetapptest.MainActivity;
 import com.brianstacks.widgetapptest.R;
 
-/**
- * Created by Brian Stacks
- * on 1/19/15
- * for FullSail.edu.
- */
+
  public class CollectionWidgetProvider extends AppWidgetProvider {
 
     public static final String ACTION_VIEW_DETAILS = "com.brianstacks.android.ACTION_VIEW_DETAILS";
     public static final String EXTRA_ITEM = "com.brianstacks.android.CollectionWidgetProvider.EXTRA_ITEM";
     public static String WIDGET_BUTTON = "com.brianstacks.android.WIDGET_BUTTON";
-    public static String UPDATE_LIST = "UPDATE_LIST";
+    public static String UPDATE_LIST = "com.brianstacks.android.UPDATE_LIST";
     RemoteViews widgetView;
     int widgetIds;
 
@@ -50,12 +50,6 @@ import com.brianstacks.widgetapptest.R;
             PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, intent2, PendingIntent.FLAG_UPDATE_CURRENT);
             widgetView.setOnClickPendingIntent(R.id.addThis, pendingIntent);
 
-            Intent clickIntent;
-            clickIntent = new Intent(context, CollectionWidgetProvider.class);
-            clickIntent.setAction(UPDATE_LIST);
-            PendingIntent pendingIntentRefresh = PendingIntent.getBroadcast(context, 0, clickIntent, 0);
-            widgetView.setOnClickPendingIntent(R.id.update_list, pendingIntentRefresh);
-
             appWidgetManager.updateAppWidget(widgetId, widgetView);
             appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetIds, R.id.article_list);
         }
@@ -74,25 +68,18 @@ import com.brianstacks.widgetapptest.R;
                     Intent details = new Intent(context, DetailActivity.class);
                     details.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     details.putExtra(DetailActivity.ARG_Name, article);
-
                     context.startActivity(details);
-
             }
         }else if (intent.getAction().equals(WIDGET_BUTTON)) {
+
 
             Intent details = new Intent(context, MainActivity.class);
             details.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(details);
-        }else if(intent.getAction().equals(UPDATE_LIST)){
-            updateWidget(context);
         }
 
         super.onReceive(context, intent);
     }
 
-    private void updateWidget(Context context) {
-        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
-        int appWidgetIds[] = appWidgetManager.getAppWidgetIds(new ComponentName(context, CollectionWidgetProvider.class));
-        appWidgetManager.notifyAppWidgetViewDataChanged(appWidgetIds, R.id.article_list);
-    }
+
 }

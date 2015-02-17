@@ -1,3 +1,8 @@
+/**
+ *Created by Brian Stacks
+ on 2/9/15
+ for FullSail.edu.
+ */
 package com.brianstacks.widgetapptest.Fragments;
 
 import android.app.Activity;
@@ -17,14 +22,7 @@ import android.widget.EditText;
 import com.brianstacks.widgetapptest.EnteredData;
 import com.brianstacks.widgetapptest.R;
 
-/**
- * A simple {@link Fragment} subclass.
- * Activities that contain this fragment must implement the
- * {@link EnterDataFragment.OnFragmentInteractionListener} interface
- * to handle interaction events.
- * Use the {@link EnterDataFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
+
 public class EnterDataFragment extends Fragment {
     public static final String TAG = "EnterDataFragment.TAG";
     private OnFragmentInteractionListener mListener;

@@ -1,12 +1,12 @@
+/**
+ *Created by Brian Stacks
+ on 2/9/15
+ for FullSail.edu.
+ */
 package com.brianstacks.widgetapptest;
 
 import java.io.Serializable;
 
-/**
- * Created by Brian Stacks
- * on 12/9/14
- * for FullSail.edu.
- */
 public class EnteredData implements Serializable {
 
     private static final long serialVersionUID = 8733333333330552888L;
