@@ -72,8 +72,8 @@ import com.brianstacks.widgetapptest.R;
             }
         }else if (intent.getAction().equals(WIDGET_BUTTON)) {
 
-
             Intent details = new Intent(context, MainActivity.class);
+            details.putExtra("data", "data");
             details.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(details);
         }

@@ -45,54 +45,37 @@ public class MainActivity extends Activity implements EnterDataFragment.OnFragme
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        if(getIntent().hasExtra("data")){
 
-        if (fileExists(this, fileName)){
-            FileInputStream fis = null;
-            try {
-                fis = this.openFileInput(fileName);
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            }
-            ObjectInputStream is = null;
-            try {
-                is = new ObjectInputStream(fis);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            ArrayList<EnteredData> simpleClass = null;
-            try {
-                simpleClass = (ArrayList<EnteredData>) is.readObject();
-            } catch (ClassNotFoundException | IOException e) {
-                e.printStackTrace();
-            }
-            try {
-                is.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            try {
-                if (fis != null) {
-                    fis.close();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            if (simpleClass != null) {
-                enteredDataArrayList = simpleClass;
-            }
-            getIntent().putExtra("enteredDataArrayList", enteredDataArrayList);
+            // call Enter data Fragment
             FragmentTransaction trans = getFragmentManager().beginTransaction();
-            MyListFragment listFrag =  MyListFragment.newInstance(enteredDataArrayList);
-            trans.replace(R.id.fragment_container, listFrag, MyListFragment.TAG);
+            EnterDataFragment enterDataFragment = EnterDataFragment.newInstance();
+            trans.replace(R.id.fragment_container, enterDataFragment, EnterDataFragment.TAG);
             trans.commit();
-        }else {
-            MyListFragment myListFragment = new MyListFragment();
-            getFragmentManager().beginTransaction()
-                    .replace(R.id.fragment_container, myListFragment, MyListFragment.TAG)
-                    .commit();
-            enteredDataArrayList = new ArrayList<>();
-            getIntent().putExtra("enteredDataArrayList", enteredDataArrayList);
+
         }
+        else{
+
+            // call ListView Fragment
+
+            if (fileExists(this, fileName)){
+                readFile();
+                getIntent().putExtra("enteredDataArrayList", enteredDataArrayList);
+                FragmentTransaction trans = getFragmentManager().beginTransaction();
+                MyListFragment listFrag =  MyListFragment.newInstance(enteredDataArrayList);
+                trans.replace(R.id.fragment_container, listFrag, MyListFragment.TAG);
+                trans.commit();
+            }else {
+                MyListFragment myListFragment = new MyListFragment();
+                getFragmentManager().beginTransaction()
+                        .replace(R.id.fragment_container, myListFragment, MyListFragment.TAG)
+                        .commit();
+                enteredDataArrayList = new ArrayList<>();
+                getIntent().putExtra("enteredDataArrayList", enteredDataArrayList);
+            }
+        }
+
+
     }
 
 
@@ -128,60 +111,33 @@ public class MainActivity extends Activity implements EnterDataFragment.OnFragme
 
     @Override
     public void onFragmentInteraction2(EnteredData enteredData) {
-        enteredDataArrayList.add(enteredData);
-        FileOutputStream fos = null;
-        try {
-            fos = this.openFileOutput(fileName, Context.MODE_PRIVATE);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-        ObjectOutputStream os = null;
-        try {
-            os = new ObjectOutputStream(fos);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        try {
-            if (os != null) {
-                os.writeObject(enteredDataArrayList);
+        Log.d("onFragmentInteraction2","WE IN onFragmentInteraction2");
+
+            if (fileExists(this, fileName)) {
+                readFile();
+                enteredDataArrayList.add(enteredData);
+                writeFile();
+                //update widget
+                Intent broadcast = new Intent(UPDATE_LIST);
+                sendBroadcast(broadcast);
+
+                MyListFragment listFrag = (MyListFragment) getFragmentManager().findFragmentByTag(MyListFragment.TAG);
+                if (listFrag == null) {
+
+                    listFrag = MyListFragment.newInstance(enteredDataArrayList);
+                    getFragmentManager().beginTransaction()
+                            .replace(R.id.fragment_container, listFrag, MyListFragment.TAG)
+                            .commit();
+
+
+                } else {
+                    DataAdapter dataAdapter = new DataAdapter(this, enteredDataArrayList);
+                    ListView myList = (ListView) findViewById(R.id.myList);
+                    myList.setAdapter(dataAdapter);
+                }
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        try {
-            if (os != null) {
-                os.close();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        try {
-            if (fos != null) {
-                fos.close();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
 
-        //update widget
-        Intent broadcast = new Intent(UPDATE_LIST);
-        sendBroadcast(broadcast);
-
-        MyListFragment listFrag = (MyListFragment) getFragmentManager().findFragmentByTag(MyListFragment.TAG);
-        if (listFrag == null) {
-
-            listFrag = MyListFragment.newInstance(enteredDataArrayList);
-            getFragmentManager().beginTransaction()
-                    .replace(R.id.fragment_container, listFrag, MyListFragment.TAG)
-                    .commit();
-
-
-        } else {
-            DataAdapter dataAdapter = new DataAdapter(this, enteredDataArrayList);
-            ListView myList = (ListView) findViewById(R.id.myList);
-            myList.setAdapter(dataAdapter);
-        }
-    }
 
     public class CustomReceiver extends BroadcastReceiver {
         @Override
@@ -219,5 +175,79 @@ public class MainActivity extends Activity implements EnterDataFragment.OnFragme
     public boolean fileExists(Context context, String filename) {
         File file = context.getFileStreamPath(filename);
         return !(file == null || !file.exists());
+    }
+
+    public void writeFile(){
+        FileOutputStream fos = null;
+        try {
+            fos = this.openFileOutput(fileName, Context.MODE_PRIVATE);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        ObjectOutputStream os = null;
+        try {
+            os = new ObjectOutputStream(fos);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
+            if (os != null) {
+                os.writeObject(enteredDataArrayList);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
+            if (os != null) {
+                os.close();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
+            if (fos != null) {
+                fos.close();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
+    }
+    public void readFile(){
+
+        FileInputStream fis = null;
+        try {
+            fis = this.openFileInput(fileName);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        ObjectInputStream is = null;
+        try {
+            is = new ObjectInputStream(fis);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        ArrayList<EnteredData> simpleClass = null;
+        try {
+            simpleClass = (ArrayList<EnteredData>) is.readObject();
+        } catch (ClassNotFoundException | IOException e) {
+            e.printStackTrace();
+        }
+        try {
+            is.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
+            if (fis != null) {
+                fis.close();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        if (simpleClass != null) {
+            enteredDataArrayList = simpleClass;
+        }
     }
 }
