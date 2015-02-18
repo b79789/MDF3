@@ -14,6 +14,7 @@ import com.brianstacks.widgetapptest.EnteredData;
 import com.brianstacks.widgetapptest.MainActivity;
 import com.brianstacks.widgetapptest.R;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -23,7 +24,7 @@ import java.util.ArrayList;
 public class CollectionWidgetFactory implements RemoteViewsService.RemoteViewsFactory {
 
     private static final int ID_CONSTANT = 0x0101010;
-
+    public static final String fileName = "enteredData";
     private ArrayList<EnteredData> enteredDataArray;
     private Context mContext;
 
@@ -35,37 +36,43 @@ public class CollectionWidgetFactory implements RemoteViewsService.RemoteViewsFa
     @Override
     public void onCreate() {
 
-        FileInputStream fis = null;
-        try {
-            fis = mContext.openFileInput(MainActivity.fileName);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-        ObjectInputStream is = null;
-        try {
-            is = new ObjectInputStream(fis);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        ArrayList<EnteredData> simpleClass = null;
-        try {
-            simpleClass = (ArrayList<EnteredData>) is.readObject();
-        } catch (ClassNotFoundException | IOException e) {
-            e.printStackTrace();
-        }
-        try {
-            is.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        try {
-            if (fis != null) {
-                fis.close();
+        if (fileExists(mContext, fileName)){
+            FileInputStream fis = null;
+            try {
+                fis = mContext.openFileInput(MainActivity.fileName);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
             }
-        } catch (IOException e) {
-            e.printStackTrace();
+            ObjectInputStream is = null;
+            try {
+                is = new ObjectInputStream(fis);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            ArrayList<EnteredData> simpleClass = null;
+            try {
+                simpleClass = (ArrayList<EnteredData>) is.readObject();
+            } catch (ClassNotFoundException | IOException e) {
+                e.printStackTrace();
+            }
+            try {
+                is.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            try {
+                if (fis != null) {
+                    fis.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            enteredDataArray = simpleClass;
+        }else {
+            enteredDataArray = new ArrayList<>();
+
         }
-        enteredDataArray = simpleClass;
+
     }
 
     @Override
@@ -114,37 +121,42 @@ public class CollectionWidgetFactory implements RemoteViewsService.RemoteViewsFa
     public void onDataSetChanged() {
         // Heavy lifting code can go here without blocking the UI.
         // You would update the data in your collection here as well.
-        FileInputStream fis = null;
-        try {
-            fis = mContext.openFileInput(MainActivity.fileName);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-        ObjectInputStream is = null;
-        try {
-            is = new ObjectInputStream(fis);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        ArrayList<EnteredData> simpleClass = null;
-        try {
-            simpleClass = (ArrayList<EnteredData>) is.readObject();
-        } catch (ClassNotFoundException | IOException e) {
-            e.printStackTrace();
-        }
-        try {
-            is.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        try {
-            if (fis != null) {
-                fis.close();
+        if (fileExists(mContext, fileName)){
+            FileInputStream fis = null;
+            try {
+                fis = mContext.openFileInput(MainActivity.fileName);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
             }
-        } catch (IOException e) {
-            e.printStackTrace();
+            ObjectInputStream is = null;
+            try {
+                is = new ObjectInputStream(fis);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            ArrayList<EnteredData> simpleClass = null;
+            try {
+                simpleClass = (ArrayList<EnteredData>) is.readObject();
+            } catch (ClassNotFoundException | IOException e) {
+                e.printStackTrace();
+            }
+            try {
+                is.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            try {
+                if (fis != null) {
+                    fis.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            enteredDataArray = simpleClass;
+        }else {
+            enteredDataArray = new ArrayList<>();
+
         }
-        enteredDataArray = simpleClass;
 
     }
 
@@ -153,4 +165,8 @@ public class CollectionWidgetFactory implements RemoteViewsService.RemoteViewsFa
         enteredDataArray.clear();
     }
 
+    public boolean fileExists(Context context, String filename) {
+        File file = context.getFileStreamPath(filename);
+        return !(file == null || !file.exists());
+    }
 }

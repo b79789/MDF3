@@ -111,8 +111,6 @@ public class MainActivity extends Activity implements EnterDataFragment.OnFragme
 
     @Override
     public void onFragmentInteraction2(EnteredData enteredData) {
-        Log.d("onFragmentInteraction2","WE IN onFragmentInteraction2");
-
             if (fileExists(this, fileName)) {
                 readFile();
                 enteredDataArrayList.add(enteredData);
@@ -128,13 +126,24 @@ public class MainActivity extends Activity implements EnterDataFragment.OnFragme
                     getFragmentManager().beginTransaction()
                             .replace(R.id.fragment_container, listFrag, MyListFragment.TAG)
                             .commit();
-
-
                 } else {
                     DataAdapter dataAdapter = new DataAdapter(this, enteredDataArrayList);
                     ListView myList = (ListView) findViewById(R.id.myList);
                     myList.setAdapter(dataAdapter);
                 }
+            }else {
+                enteredDataArrayList = new ArrayList<>();
+                enteredDataArrayList.add(enteredData);
+                writeFile();
+                Intent broadcast = new Intent(UPDATE_LIST);
+                sendBroadcast(broadcast);
+                MyListFragment myListFragment = MyListFragment.newInstance(enteredDataArrayList);
+                getFragmentManager().beginTransaction()
+                        .replace(R.id.fragment_container, myListFragment, MyListFragment.TAG)
+                        .commit();
+
+                getIntent().putExtra("enteredDataArrayList", enteredDataArrayList);
+
             }
         }
 
