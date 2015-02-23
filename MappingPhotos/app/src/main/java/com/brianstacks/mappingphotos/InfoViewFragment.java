@@ -68,8 +68,6 @@ public class InfoViewFragment extends Fragment {
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
-        showInfoButt =(Button)getActivity().findViewById(R.id.showInfo);
-        showInfoButt.setVisibility(View.INVISIBLE);
 
     }
 
@@ -77,7 +75,5 @@ public class InfoViewFragment extends Fragment {
     public void onDetach() {
         super.onDetach();
 
-        showInfoButt =(Button)getActivity().findViewById(R.id.showInfo);
-        showInfoButt.setVisibility(View.VISIBLE);
     }
 }

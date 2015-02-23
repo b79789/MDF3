@@ -64,6 +64,11 @@ public class MainActivity extends Activity implements EnterDataFragment.OnFragme
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
+        }else if (id == R.id.addButton){
+            EnterDataFragment enterDataFragment = EnterDataFragment.newInstance();
+            getFragmentManager().beginTransaction()
+                    .add(R.id.layout_container, enterDataFragment, EnterDataFragment.TAG)
+                    .commit();
         }
 
         return super.onOptionsItemSelected(item);

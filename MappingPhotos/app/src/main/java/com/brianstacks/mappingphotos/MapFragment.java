@@ -73,48 +73,6 @@ public class MapFragment extends com.google.android.gms.maps.MapFragment impleme
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        Bundle args = getArguments();
-        addButton =(Button)getActivity().findViewById(R.id.get_my_location_button);
-        addButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                Log.d("addButton","Clicked it");
-
-                EnterDataFragment enterDataFragment = new EnterDataFragment();
-                getActivity().getFragmentManager().beginTransaction()
-                        .replace(R.id.map, enterDataFragment, EnterDataFragment.TAG)
-                        .commit();
-            }
-        });
-
-        viewButton = (Button)getActivity().findViewById(R.id.showInfo);
-        viewButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                InfoViewFragment infoViewFragment = InfoViewFragment.newInstance();
-                getFragmentManager().beginTransaction()
-                        .replace(R.id.map, infoViewFragment, InfoViewFragment.TAG)
-                        .commit();
-            }
-        });
-
-        mapButton=(Button)getActivity().findViewById(R.id.showMap);
-        mapButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                MapFragment mapFragment = (MapFragment)getFragmentManager().findFragmentByTag(MapFragment.TAG);
-                if (mapFragment == null){
-                    mapFragment = MapFragment.newInstance(myArrayList);
-                    getFragmentManager().beginTransaction()
-                            .replace(R.id.map, mapFragment,MapFragment.TAG)
-                            .commit();
-                }else {
-                    getFragmentManager().beginTransaction().replace(R.id.layout_container, mapFragment).commit();
-
-                }
-            }
-        });
 
         mManager = (LocationManager)getActivity().getSystemService(MainActivity.LOCATION_SERVICE);
         //myArrayList = (ArrayList<EnteredData>) args.getSerializable("myArrayList");
