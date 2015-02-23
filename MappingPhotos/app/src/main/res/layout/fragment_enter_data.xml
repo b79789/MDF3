@@ -1,0 +1,46 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="vertical"
+    tools:context="com.brianstacks.mappingphotos.Fragments.EnterDataFragment"
+    android:layout_gravity="center">
+
+
+    <EditText
+        android:id="@+id/e1"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:inputType="text"
+        android:hint="Name"
+        android:ellipsize="start"
+        android:gravity="center_horizontal"/>
+    <EditText
+        android:id="@+id/e2"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:inputType="text"
+        android:hint="Age"
+        android:ellipsize="start"
+        android:gravity="center_horizontal"/>
+    <Button
+        android:id="@+id/takePicButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Take Pic"
+        android:padding="5dp"
+        android:layout_gravity="center"/>
+    <Button
+        android:id="@+id/addButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Enter"
+        android:layout_gravity="center"/>
+    <ImageView
+        android:id="@+id/myPic"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:adjustViewBounds="true"
+        android:contentDescription="photo" />
+
+</LinearLayout>
