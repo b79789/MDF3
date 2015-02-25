@@ -5,32 +5,25 @@
  */
 package com.brianstacks.mappingphotos;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.net.Uri;
 import android.os.Bundle;
-import android.app.Fragment;
 import android.provider.Settings;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.TextView;
-
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -48,7 +41,7 @@ public class MapFragment extends com.google.android.gms.maps.MapFragment impleme
     private static final int REQUEST_ENABLE_GPS = 0x02001;
     LocationManager mManager;
     ArrayList<EnteredData> myArrayList;
-    HashMap <String, EnteredData> mMarkers = new HashMap<String, EnteredData>();
+    HashMap <String, EnteredData> mMarkers = new HashMap<>();
 
 
 
@@ -69,6 +62,27 @@ public class MapFragment extends com.google.android.gms.maps.MapFragment impleme
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setRetainInstance(true);
+
+
+    }
+
+    @Override
+    public void onResume(){
+        super.onResume();
+        mManager = (LocationManager)getActivity().getSystemService(MainActivity.LOCATION_SERVICE);
+
+        if(mManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            mManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 10, this);
+
+            Location loc = mManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            double lati = loc.getLatitude();
+            double longi = loc.getLongitude();
+            mMap=getMap();
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(lati, longi), 10));
+
+
+        }
 
     }
 
@@ -89,9 +103,9 @@ public class MapFragment extends com.google.android.gms.maps.MapFragment impleme
             for (int i = 0;i<myArrayList.size();i++){
                 getActivity().getIntent().getExtras().putSerializable("myArrayListObject", myArrayList.get(i));
                 mMap = getMap();
+
                 MarkerOptions mo = new MarkerOptions()
-                        .position(new LatLng(myArrayList.get(i).getLat(),myArrayList.get(i).getLon()))
-                        .title(myArrayList.get(i).getName());
+                        .position(new LatLng(myArrayList.get(i).getLat(), myArrayList.get(i).getLon())).title(myArrayList.get(i).getName());
                 Marker marker = mMap.addMarker(mo);
                 mMap.addMarker(mo);
                 mMarkers.put(marker.getId(),myArrayList.get(i));
@@ -103,8 +117,7 @@ public class MapFragment extends com.google.android.gms.maps.MapFragment impleme
                 mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
                     @Override
                     public void onMapLongClick(LatLng latLng) {
-                        Log.d("Brian Stacks","File exist!");
-                        Log.d("myArrayList","size is " + myArrayList.size());
+
                         Double lat = latLng.latitude;
                         Double lon = latLng.longitude;
                         mMap.addMarker(new MarkerOptions().position(latLng).title(myArrayList.get(finalI).getName()));
@@ -116,8 +129,6 @@ public class MapFragment extends com.google.android.gms.maps.MapFragment impleme
                 });
             }
         }else {
-            Log.d("Brian Stacks","File does not exist!");
-
             myArrayList=new ArrayList<>();
             if (enteredData == null){
                 enteredData = new EnteredData();
@@ -128,13 +139,13 @@ public class MapFragment extends com.google.android.gms.maps.MapFragment impleme
             mMap = getMap();
             mMap.addMarker(new MarkerOptions().position(new LatLng(myArrayList.get(0).getLat(),myArrayList.get(0).getLon())).title(myArrayList.get(0).getName()));
             mMap.setInfoWindowAdapter(new MarkerAdapter());
+
             mMap.setOnInfoWindowClickListener(this);
             mMap.setOnMapClickListener(this);
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(enteredData.getLat(), enteredData.getLon()), 12));
             mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
                 @Override
                 public void onMapLongClick(LatLng latLng) {
-
                     mMap.addMarker(new MarkerOptions().position(latLng).title("New Marker"));
                     double lat = latLng.latitude;
                     double lon = latLng.longitude;
@@ -170,6 +181,7 @@ public class MapFragment extends com.google.android.gms.maps.MapFragment impleme
     @Override
     public void onInfoWindowClick(Marker marker) {
 
+
         EnteredData marker_data = mMarkers.get(marker.getId());
         getActivity().getIntent().putExtra("marker_data",marker_data);
         // Get extra data with marker ID
@@ -183,8 +195,6 @@ public class MapFragment extends com.google.android.gms.maps.MapFragment impleme
 
     @Override
     public void onMapClick(LatLng latLng) {
-        Log.v("onMapClick LatLong", String.valueOf(latLng));
-
 
     }
 
@@ -204,6 +214,7 @@ public class MapFragment extends com.google.android.gms.maps.MapFragment impleme
 
         @Override
         public View getInfoWindow(Marker marker) {
+            mText.setBackgroundColor(Color.BLACK);
             return null;
         }
     }

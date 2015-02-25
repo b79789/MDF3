@@ -10,12 +10,11 @@ import android.app.FragmentTransaction;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.Button;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -26,7 +25,7 @@ import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 
 
-public class MainActivity extends Activity implements EnterDataFragment.OnFragmentInteractionListener{
+public class MainActivity extends ActionBarActivity implements EnterDataFragment.OnFragmentInteractionListener{
     ArrayList<EnteredData> myArrayList;
     public static final String fileName = "mapentereddata";
 
@@ -38,9 +37,6 @@ public class MainActivity extends Activity implements EnterDataFragment.OnFragme
         setContentView(R.layout.activity_main);
         if (fileExists(this, fileName)){
             readFile();
-            String path = Environment.getExternalStorageDirectory().getAbsolutePath()
-                    +"/"+fileName;
-            Log.d("Filename",path);
             getIntent().putExtra("arrayList", myArrayList);
             FragmentTransaction trans = getFragmentManager().beginTransaction();
             MapFragment mapFragment = MapFragment.newInstance(myArrayList);
@@ -58,8 +54,8 @@ public class MainActivity extends Activity implements EnterDataFragment.OnFragme
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.menu_main, menu);
         return true;
     }
 
@@ -85,25 +81,16 @@ public class MainActivity extends Activity implements EnterDataFragment.OnFragme
         getIntent().putExtra("enteredData", enteredData);
         myArrayList.add(enteredData);
         writeFile();
-
-
         MapFragment mapFragment = (MapFragment)getFragmentManager().findFragmentByTag(MapFragment.TAG);
         if (mapFragment == null){
-            Log.d("Brian Stacks","mapFragment == null");
-
             mapFragment = MapFragment.newInstance(myArrayList);
             getFragmentManager().beginTransaction()
                     .replace(R.id.layout_container, mapFragment,MapFragment.TAG)
                     .commit();
         }else {
-            Log.d("Brian Stacks","mapFragment does not == null");
-
             mapFragment.getFragmentManager().beginTransaction().commit();
         }
-
     }
-
-
 
     public boolean fileExists(Context context, String filename) {
         File file = context.getFileStreamPath(filename);
@@ -183,6 +170,4 @@ public class MainActivity extends Activity implements EnterDataFragment.OnFragme
             myArrayList = simpleClass;
         }
     }
-
-
 }

@@ -9,21 +9,34 @@
     android:padding="5dp">
     <TextView
         android:id="@+id/detailsTV1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textColor="@android:color/holo_green_dark"
+        android:textStyle="bold"/>
     <TextView
         android:id="@+id/detailsTV2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textColor="@android:color/holo_green_dark"
+        android:textStyle="bold"/>
     <Button
         android:id="@+id/backButton"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Close"/>
+        android:text="Close View"
+        android:textColor="@android:color/holo_red_light"
+        android:textStyle="bold"/>
     <ImageView
         android:id="@+id/detailsViewImage"
         android:contentDescription="photo"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:adjustViewBounds="true"
+        android:layout_gravity="center"
+        android:layout_marginTop="10dp"
+        android:layout_marginStart="20dp"
+        android:scaleType="centerInside"/>
 
 </LinearLayout>

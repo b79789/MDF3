@@ -7,7 +7,6 @@ package com.brianstacks.mappingphotos;
 
 import android.app.Activity;
 import android.graphics.BitmapFactory;
-import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.view.LayoutInflater;
@@ -17,22 +16,14 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import java.util.ArrayList;
-
 
 public class InfoViewFragment extends Fragment {
 
     public static final String TAG = "InfoViewFragment.TAG";
-
-    private static final String Arg_Data="data";
-
     TextView tv1;
     TextView tv2;
     ImageView iv1;
-    Button closeButtton;
-    ArrayList<EnteredData> myArrayList;
-
-    Button showInfoButt;
+    Button closeButton;
 
     EnteredData enteredData;
     public static InfoViewFragment newInstance() {
@@ -59,20 +50,18 @@ public class InfoViewFragment extends Fragment {
     @Override
     public void onActivityCreated(Bundle savedInstance) {
         super.onActivityCreated(savedInstance);
-        //myArrayList = (ArrayList<EnteredData>)getActivity().getIntent().getSerializableExtra("myArrayList");
         enteredData = (EnteredData)getActivity().getIntent().getSerializableExtra("marker_data");
         tv1 =(TextView)getActivity().findViewById(R.id.detailsTV1);
         tv2 =(TextView)getActivity().findViewById(R.id.detailsTV2);
         iv1 =(ImageView)getActivity().findViewById(R.id.detailsViewImage);
-        closeButtton =(Button)getActivity().findViewById(R.id.backButton);
+        closeButton =(Button)getActivity().findViewById(R.id.backButton);
         tv1.setText(enteredData.getName());
         tv2.setText(enteredData.getAge());
         iv1.setImageBitmap(BitmapFactory.decodeFile(enteredData.getPic()));
-        closeButtton.setOnClickListener(new View.OnClickListener() {
+        closeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                getActivity().finish();
-            }
+                getActivity().getFragmentManager().popBackStack();            }
         });
     }
 

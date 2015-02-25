@@ -84,18 +84,12 @@ public class EnterDataFragment extends Fragment implements LocationListener{
         super.onActivityCreated(savedInstance);
             enteredData = new EnteredData();
         if (getArguments() != null&& getArguments().containsKey("lat")&&getArguments().containsKey("lon")) {
-            Log.d("EnterDataFragment","getArguments() != null");
             double lat =getArguments().getDouble("lat",0);
             double lon =getArguments().getDouble("lon",0);
             enteredData.setLat(lat);
             enteredData.setLon(lon);
-            Log.d("EnterDataFragmentlat", String.valueOf(enteredData.getLat()));
-            Log.d("EnterDataFragmentlon", String.valueOf(enteredData.getLon()));
         }else {
-            Log.d("EnterDataFragment","getArguments() == null");
             enableGps();
-            Log.d("EnterDataFragmentlat", String.valueOf(enteredData.getLat()));
-            Log.d("EnterDataFragmentlon", String.valueOf(enteredData.getLon()));
         }
         final EditText e1 = (EditText)getActivity().findViewById(R.id.e1);
         final EditText e2 = (EditText)getActivity().findViewById(R.id.e2);
@@ -156,13 +150,8 @@ public class EnterDataFragment extends Fragment implements LocationListener{
                     alert11.show();
 
                 }else {
-
                     enteredData.setName(e1.getText().toString());
                     enteredData.setAge(e2.getText().toString());
-                    Log.d("EnterDataFragmentlat", String.valueOf(enteredData.getLat()));
-                    Log.d("EnterDataFragmentlon", String.valueOf(enteredData.getLon()));
-
-
                     mListener.onFragmentInteraction(enteredData);
                 }
             }
@@ -173,8 +162,6 @@ public class EnterDataFragment extends Fragment implements LocationListener{
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-
-
         if(requestCode == REQUEST_TAKE_PICTURE && resultCode != MainActivity.RESULT_CANCELED) {
             if(data == null) {
                 mImageView.setImageBitmap(BitmapFactory.decodeFile(mImageUri.getPath()));
@@ -185,10 +172,7 @@ public class EnterDataFragment extends Fragment implements LocationListener{
             }
             enteredData.setPic(mImageUri.getPath());
         }
-
     }
-
-
 
     @Override
     public void onAttach(Activity activity) {
