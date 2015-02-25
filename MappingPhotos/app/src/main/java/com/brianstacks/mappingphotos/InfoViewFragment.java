@@ -17,6 +17,8 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.util.ArrayList;
+
 
 public class InfoViewFragment extends Fragment {
 
@@ -27,6 +29,9 @@ public class InfoViewFragment extends Fragment {
     TextView tv1;
     TextView tv2;
     ImageView iv1;
+    Button closeButtton;
+    ArrayList<EnteredData> myArrayList;
+
     Button showInfoButt;
 
     EnteredData enteredData;
@@ -54,13 +59,21 @@ public class InfoViewFragment extends Fragment {
     @Override
     public void onActivityCreated(Bundle savedInstance) {
         super.onActivityCreated(savedInstance);
-        enteredData = (EnteredData)getActivity().getIntent().getSerializableExtra("enteredData");
+        //myArrayList = (ArrayList<EnteredData>)getActivity().getIntent().getSerializableExtra("myArrayList");
+        enteredData = (EnteredData)getActivity().getIntent().getSerializableExtra("marker_data");
         tv1 =(TextView)getActivity().findViewById(R.id.detailsTV1);
         tv2 =(TextView)getActivity().findViewById(R.id.detailsTV2);
         iv1 =(ImageView)getActivity().findViewById(R.id.detailsViewImage);
+        closeButtton =(Button)getActivity().findViewById(R.id.backButton);
         tv1.setText(enteredData.getName());
         tv2.setText(enteredData.getAge());
         iv1.setImageBitmap(BitmapFactory.decodeFile(enteredData.getPic()));
+        closeButtton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getActivity().finish();
+            }
+        });
     }
 
 

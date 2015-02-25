@@ -9,6 +9,7 @@ import android.app.Activity;
 import android.app.FragmentTransaction;
 import android.content.Context;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -27,7 +28,7 @@ import java.util.ArrayList;
 
 public class MainActivity extends Activity implements EnterDataFragment.OnFragmentInteractionListener{
     ArrayList<EnteredData> myArrayList;
-    public static final String fileName = "MapEnteredData";
+    public static final String fileName = "mapentereddata";
 
 
 
@@ -36,11 +37,19 @@ public class MainActivity extends Activity implements EnterDataFragment.OnFragme
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         if (fileExists(this, fileName)){
-            Log.d("Brian Stacks","File exist!");
+            readFile();
+            String path = Environment.getExternalStorageDirectory().getAbsolutePath()
+                    +"/"+fileName;
+            Log.d("Filename",path);
+            getIntent().putExtra("arrayList", myArrayList);
+            FragmentTransaction trans = getFragmentManager().beginTransaction();
+            MapFragment mapFragment = MapFragment.newInstance(myArrayList);
+            trans.replace(R.id.layout_container, mapFragment, MapFragment.TAG);
+            trans.commit();
         }else {
             myArrayList=new ArrayList<>();
             MapFragment frag = new MapFragment();
-            getFragmentManager().beginTransaction().replace(R.id.map, frag).commit();
+            getFragmentManager().beginTransaction().replace(R.id.layout_container, frag).commit();
 
         }
 
@@ -61,13 +70,10 @@ public class MainActivity extends Activity implements EnterDataFragment.OnFragme
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }else if (id == R.id.addButton){
-            EnterDataFragment enterDataFragment = EnterDataFragment.newInstance();
+        if (id == R.id.addButton){
+            EnterDataFragment enterDataFragment = new EnterDataFragment();
             getFragmentManager().beginTransaction()
-                    .add(R.id.layout_container, enterDataFragment, EnterDataFragment.TAG)
+                    .replace(R.id.layout_container, enterDataFragment, EnterDataFragment.TAG)
                     .commit();
         }
 
@@ -79,12 +85,20 @@ public class MainActivity extends Activity implements EnterDataFragment.OnFragme
         getIntent().putExtra("enteredData", enteredData);
         myArrayList.add(enteredData);
         writeFile();
+
+
         MapFragment mapFragment = (MapFragment)getFragmentManager().findFragmentByTag(MapFragment.TAG);
         if (mapFragment == null){
+            Log.d("Brian Stacks","mapFragment == null");
+
             mapFragment = MapFragment.newInstance(myArrayList);
             getFragmentManager().beginTransaction()
-                    .replace(R.id.map, mapFragment,MapFragment.TAG)
+                    .replace(R.id.layout_container, mapFragment,MapFragment.TAG)
                     .commit();
+        }else {
+            Log.d("Brian Stacks","mapFragment does not == null");
+
+            mapFragment.getFragmentManager().beginTransaction().commit();
         }
 
     }

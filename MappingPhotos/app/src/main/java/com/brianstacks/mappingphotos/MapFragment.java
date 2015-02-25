@@ -8,6 +8,7 @@ package com.brianstacks.mappingphotos;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.FragmentTransaction;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.location.Location;
@@ -30,7 +31,13 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 
 public class MapFragment extends com.google.android.gms.maps.MapFragment implements GoogleMap.OnInfoWindowClickListener, GoogleMap.OnMapClickListener, LocationListener {
@@ -39,12 +46,9 @@ public class MapFragment extends com.google.android.gms.maps.MapFragment impleme
     GoogleMap mMap;
     EnteredData enteredData;
     private static final int REQUEST_ENABLE_GPS = 0x02001;
-    Button mapButt;
     LocationManager mManager;
-    Button addButton;
-    Button viewButton;
-    Button mapButton;
     ArrayList<EnteredData> myArrayList;
+    HashMap <String, EnteredData> mMarkers = new HashMap<String, EnteredData>();
 
 
 
@@ -65,42 +69,82 @@ public class MapFragment extends com.google.android.gms.maps.MapFragment impleme
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
 
-        }
     }
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-
         mManager = (LocationManager)getActivity().getSystemService(MainActivity.LOCATION_SERVICE);
         //myArrayList = (ArrayList<EnteredData>) args.getSerializable("myArrayList");
-        enteredData = (EnteredData)getActivity().getIntent().getSerializableExtra("enteredData");
 
-        if (null == enteredData){
 
-            enteredData = new EnteredData();
-            enableGps();
-            enteredData.setName("No Info Entered");
-        }
 
-        mMap = getMap();
-        mMap.addMarker(new MarkerOptions().position(new LatLng(enteredData.getLat(),enteredData.getLon())).title(enteredData.getName()));
-        mMap.setInfoWindowAdapter(new MarkerAdapter());
-        mMap.setOnInfoWindowClickListener(this);
-        mMap.setOnMapClickListener(this);
-        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(enteredData.getLat(), enteredData.getLon()), 12));
-        mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
-            @Override
-            public void onMapLongClick(LatLng latLng) {
-                Log.v("onMapLongClick LatLong", String.valueOf(latLng));
-                FragmentTransaction trans = getFragmentManager().beginTransaction();
-                EnterDataFragment enterDataFragment = EnterDataFragment.newInstance();
-                trans.replace(R.id.layout_container, enterDataFragment, EnterDataFragment.TAG);
-                trans.commit();
+        if (fileExists(getActivity(), MainActivity.fileName)){
+            readFile();
+            if (getArguments()!=null){
+                myArrayList= (ArrayList<EnteredData>) getArguments().getSerializable("myArrayList");
             }
-        });
+
+            for (int i = 0;i<myArrayList.size();i++){
+                getActivity().getIntent().getExtras().putSerializable("myArrayListObject", myArrayList.get(i));
+                mMap = getMap();
+                MarkerOptions mo = new MarkerOptions()
+                        .position(new LatLng(myArrayList.get(i).getLat(),myArrayList.get(i).getLon()))
+                        .title(myArrayList.get(i).getName());
+                Marker marker = mMap.addMarker(mo);
+                mMap.addMarker(mo);
+                mMarkers.put(marker.getId(),myArrayList.get(i));
+                mMap.setInfoWindowAdapter(new MarkerAdapter());
+                mMap.setOnInfoWindowClickListener(this);
+                mMap.setOnMapClickListener(this);
+                mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(myArrayList.get(i).getLat(),myArrayList.get(i).getLon()), 12));
+                final int finalI = i;
+                mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
+                    @Override
+                    public void onMapLongClick(LatLng latLng) {
+                        Log.d("Brian Stacks","File exist!");
+                        Log.d("myArrayList","size is " + myArrayList.size());
+                        Double lat = latLng.latitude;
+                        Double lon = latLng.longitude;
+                        mMap.addMarker(new MarkerOptions().position(latLng).title(myArrayList.get(finalI).getName()));
+                        FragmentTransaction trans = getFragmentManager().beginTransaction();
+                        EnterDataFragment enterDataFragment = EnterDataFragment.newInstance(lat,lon);
+                        trans.replace(R.id.layout_container, enterDataFragment, EnterDataFragment.TAG);
+                        trans.commit();
+                    }
+                });
+            }
+        }else {
+            Log.d("Brian Stacks","File does not exist!");
+
+            myArrayList=new ArrayList<>();
+            if (enteredData == null){
+                enteredData = new EnteredData();
+                enableGps();
+                enteredData.setName("No Info Entered");
+            }
+            myArrayList.add(enteredData);
+            mMap = getMap();
+            mMap.addMarker(new MarkerOptions().position(new LatLng(myArrayList.get(0).getLat(),myArrayList.get(0).getLon())).title(myArrayList.get(0).getName()));
+            mMap.setInfoWindowAdapter(new MarkerAdapter());
+            mMap.setOnInfoWindowClickListener(this);
+            mMap.setOnMapClickListener(this);
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(enteredData.getLat(), enteredData.getLon()), 12));
+            mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
+                @Override
+                public void onMapLongClick(LatLng latLng) {
+
+                    mMap.addMarker(new MarkerOptions().position(latLng).title("New Marker"));
+                    double lat = latLng.latitude;
+                    double lon = latLng.longitude;
+                    FragmentTransaction trans = getFragmentManager().beginTransaction();
+                    EnterDataFragment enterDataFragment = EnterDataFragment.newInstance(lat,lon);
+                    trans.replace(R.id.layout_container, enterDataFragment, EnterDataFragment.TAG);
+                    trans.commit();
+                }
+            });
+        }
     }
 
     @Override
@@ -126,11 +170,21 @@ public class MapFragment extends com.google.android.gms.maps.MapFragment impleme
     @Override
     public void onInfoWindowClick(Marker marker) {
 
+        EnteredData marker_data = mMarkers.get(marker.getId());
+        getActivity().getIntent().putExtra("marker_data",marker_data);
+        // Get extra data with marker ID
+
+        InfoViewFragment infoViewFragment = InfoViewFragment.newInstance();
+        getFragmentManager().beginTransaction()
+                .replace(R.id.layout_container, infoViewFragment, InfoViewFragment.TAG)
+                .addToBackStack(MapFragment.TAG)
+                .commit();
     }
 
     @Override
     public void onMapClick(LatLng latLng) {
         Log.v("onMapClick LatLong", String.valueOf(latLng));
+
 
     }
 
@@ -183,4 +237,45 @@ public class MapFragment extends com.google.android.gms.maps.MapFragment impleme
         }
     }
 
+    public boolean fileExists(Context context, String filename) {
+        File file = context.getFileStreamPath(filename);
+        return !(file == null || !file.exists());
+    }
+
+    public void readFile(){
+
+        FileInputStream fis = null;
+        try {
+            fis = getActivity().openFileInput(MainActivity.fileName);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        ObjectInputStream is = null;
+        try {
+            is = new ObjectInputStream(fis);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        ArrayList<EnteredData> simpleClass = null;
+        try {
+            simpleClass = (ArrayList<EnteredData>) is.readObject();
+        } catch (ClassNotFoundException | IOException e) {
+            e.printStackTrace();
+        }
+        try {
+            is.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
+            if (fis != null) {
+                fis.close();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        if (simpleClass != null) {
+            myArrayList = simpleClass;
+        }
+    }
 }

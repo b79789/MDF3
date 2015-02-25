@@ -9,6 +9,8 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -18,12 +20,15 @@ import android.app.Fragment;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.provider.Settings;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+
+import com.google.android.gms.maps.model.LatLng;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -46,8 +51,12 @@ public class EnterDataFragment extends Fragment implements LocationListener{
     private OnFragmentInteractionListener mListener;
 
 
-    public static EnterDataFragment newInstance() {
+    public static EnterDataFragment newInstance(double lat, double lon) {
         EnterDataFragment fragment = new EnterDataFragment();
+        Bundle args = new Bundle();
+        args.putDouble("lat", lat);
+        args.putDouble("lon", lon);
+        fragment.setArguments(args);
         return fragment;
     }
 
@@ -58,9 +67,8 @@ public class EnterDataFragment extends Fragment implements LocationListener{
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
+        mManager = (LocationManager)getActivity().getSystemService(MainActivity.LOCATION_SERVICE);
 
-        }
     }
 
     @Override
@@ -74,17 +82,25 @@ public class EnterDataFragment extends Fragment implements LocationListener{
     @Override
     public void onActivityCreated(Bundle savedInstance){
         super.onActivityCreated(savedInstance);
-        if (enteredData == null){
             enteredData = new EnteredData();
+        if (getArguments() != null&& getArguments().containsKey("lat")&&getArguments().containsKey("lon")) {
+            Log.d("EnterDataFragment","getArguments() != null");
+            double lat =getArguments().getDouble("lat",0);
+            double lon =getArguments().getDouble("lon",0);
+            enteredData.setLat(lat);
+            enteredData.setLon(lon);
+            Log.d("EnterDataFragmentlat", String.valueOf(enteredData.getLat()));
+            Log.d("EnterDataFragmentlon", String.valueOf(enteredData.getLon()));
         }else {
-            enteredData= (EnteredData)getActivity().getIntent().getSerializableExtra("enteredData");
+            Log.d("EnterDataFragment","getArguments() == null");
+            enableGps();
+            Log.d("EnterDataFragmentlat", String.valueOf(enteredData.getLat()));
+            Log.d("EnterDataFragmentlon", String.valueOf(enteredData.getLon()));
         }
-        mManager = (LocationManager)getActivity().getSystemService(MainActivity.LOCATION_SERVICE);
         final EditText e1 = (EditText)getActivity().findViewById(R.id.e1);
         final EditText e2 = (EditText)getActivity().findViewById(R.id.e2);
         mButton = (Button)getActivity().findViewById(R.id.takePicButton);
         mImageView = (ImageView)getActivity().findViewById(R.id.myPic);
-        e1.requestFocus();
         mButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -143,8 +159,10 @@ public class EnterDataFragment extends Fragment implements LocationListener{
 
                     enteredData.setName(e1.getText().toString());
                     enteredData.setAge(e2.getText().toString());
+                    Log.d("EnterDataFragmentlat", String.valueOf(enteredData.getLat()));
+                    Log.d("EnterDataFragmentlon", String.valueOf(enteredData.getLon()));
 
-                    enableGps();
+
                     mListener.onFragmentInteraction(enteredData);
                 }
             }
@@ -152,6 +170,24 @@ public class EnterDataFragment extends Fragment implements LocationListener{
 
 
     }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+
+        if(requestCode == REQUEST_TAKE_PICTURE && resultCode != MainActivity.RESULT_CANCELED) {
+            if(data == null) {
+                mImageView.setImageBitmap(BitmapFactory.decodeFile(mImageUri.getPath()));
+                addImageToGallery(mImageUri);
+            } else {
+                mImageView.setImageBitmap((Bitmap)data.getParcelableExtra("data"));
+                addImageToGallery((Uri)data.getParcelableExtra("data"));
+            }
+            enteredData.setPic(mImageUri.getPath());
+        }
+
+    }
+
 
 
     @Override
@@ -171,6 +207,8 @@ public class EnterDataFragment extends Fragment implements LocationListener{
         mListener = null;
     }
 
+
+
     private void enableGps() {
         if(mManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             mManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 10, this);
@@ -180,8 +218,6 @@ public class EnterDataFragment extends Fragment implements LocationListener{
             if(loc != null) {
                 enteredData.setLat(loc.getLatitude());
                 enteredData.setLon(loc.getLongitude());
-
-
             }
 
         } else {
@@ -201,7 +237,7 @@ public class EnterDataFragment extends Fragment implements LocationListener{
         }
     }
     private Uri getOutputUri() {
-        String imageName = new SimpleDateFormat("MMddyyyy_HHmmss", Locale.US)
+        String imageName = new SimpleDateFormat("MMddyyyy_HHmmss")
                 .format(new Date(System.currentTimeMillis()));
         File imageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
         // Creating our own folder in the default directory.
@@ -227,7 +263,7 @@ public class EnterDataFragment extends Fragment implements LocationListener{
     public void onResume() {
         super.onResume();
 
-        enableGps();
+
     }
 
     @Override
@@ -239,8 +275,7 @@ public class EnterDataFragment extends Fragment implements LocationListener{
 
     @Override
     public void onLocationChanged(Location location) {
-        enteredData.setLat(location.getLatitude());
-        enteredData.setLon(location.getLongitude());
+
     }
 
     @Override
