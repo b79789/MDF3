@@ -7,31 +7,31 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.TextView;
+import android.widget.ToggleButton;
 
 
 public class SettingsActivity extends Activity {
 
-    TextView textTarget;
     public static final String PREFS_KEY = "DreamPrefs";
-    Button button;
+    ToggleButton button;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
-        textTarget = (TextView)findViewById(R.id.myText);
+
         final SharedPreferences settings = getSharedPreferences(PREFS_KEY, 0);
-
-        String theText = settings.getString("theText","I have set the text");
-        textTarget.setText(theText);
-        button = (Button)findViewById(R.id.button);
-        button.setOnClickListener(new View.OnClickListener() {
+        boolean check = settings.getBoolean("changedText", true);
+        button = (ToggleButton)findViewById(R.id.button);
+        button.setChecked(check);
+        button.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
-            public void onClick(View v) {
-                SharedPreferences.Editor prefEditor = settings.edit();
-                prefEditor.putString("theText", "I have changed the text");
-                prefEditor.apply();
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
 
+                SharedPreferences.Editor prefEditor = settings.edit();
+                prefEditor.putBoolean("changedText", isChecked);
+                prefEditor.apply();
             }
         });
     }

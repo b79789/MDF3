@@ -13,7 +13,7 @@ import android.widget.TextView;
 
 public class MainActivity extends Activity {
 
-    DataClass dataClass;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

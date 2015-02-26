@@ -25,7 +25,13 @@ public class MyDream extends DreamService {
         TextView dreamtext =(TextView)findViewById(R.id.myText);
         final SharedPreferences settings = getSharedPreferences(
                 SettingsActivity.PREFS_KEY, 0);
+        boolean check = settings.getBoolean("changedText", true);
+        if (check){
+            dreamtext.setText("Hello World it is Brian Stacks");
 
+        }else {
+            dreamtext.setText("Hey, you took my World = [");
+        }
     }
 
     @Override
