@@ -5,13 +5,10 @@
  */
 package com.brianstacks.mappingphotos;
 
-import android.app.Activity;
 import android.app.FragmentTransaction;
 import android.content.Context;
 import android.os.Bundle;
-import android.os.Environment;
 import android.support.v7.app.ActionBarActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -28,8 +25,6 @@ import java.util.ArrayList;
 public class MainActivity extends ActionBarActivity implements EnterDataFragment.OnFragmentInteractionListener{
     ArrayList<EnteredData> myArrayList;
     public static final String fileName = "mapentereddata";
-
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

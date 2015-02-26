@@ -43,10 +43,6 @@ public class MapFragment extends com.google.android.gms.maps.MapFragment impleme
     ArrayList<EnteredData> myArrayList;
     HashMap <String, EnteredData> mMarkers = new HashMap<>();
 
-
-
-
-
     public static MapFragment newInstance(ArrayList<EnteredData> arrayList) {
         MapFragment fragment = new MapFragment();
         Bundle args = new Bundle();
@@ -63,43 +59,30 @@ public class MapFragment extends com.google.android.gms.maps.MapFragment impleme
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
-
-
     }
 
     @Override
     public void onResume(){
         super.onResume();
         mManager = (LocationManager)getActivity().getSystemService(MainActivity.LOCATION_SERVICE);
-
         if(mManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             mManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 10, this);
-
             Location loc = mManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
             double lati = loc.getLatitude();
             double longi = loc.getLongitude();
             mMap=getMap();
-            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(lati, longi), 10));
-
-
         }
-
     }
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
         mManager = (LocationManager)getActivity().getSystemService(MainActivity.LOCATION_SERVICE);
-        //myArrayList = (ArrayList<EnteredData>) args.getSerializable("myArrayList");
-
-
-
         if (fileExists(getActivity(), MainActivity.fileName)){
             readFile();
             if (getArguments()!=null){
                 myArrayList= (ArrayList<EnteredData>) getArguments().getSerializable("myArrayList");
             }
-
             for (int i = 0;i<myArrayList.size();i++){
                 getActivity().getIntent().getExtras().putSerializable("myArrayListObject", myArrayList.get(i));
                 mMap = getMap();
@@ -134,27 +117,11 @@ public class MapFragment extends com.google.android.gms.maps.MapFragment impleme
                 enteredData = new EnteredData();
                 enableGps();
                 enteredData.setName("No Info Entered");
+                enteredData.setLat(-87.5);
+                enteredData.setLon(35.4);
             }
             myArrayList.add(enteredData);
-            mMap = getMap();
-            mMap.addMarker(new MarkerOptions().position(new LatLng(myArrayList.get(0).getLat(),myArrayList.get(0).getLon())).title(myArrayList.get(0).getName()));
-            mMap.setInfoWindowAdapter(new MarkerAdapter());
 
-            mMap.setOnInfoWindowClickListener(this);
-            mMap.setOnMapClickListener(this);
-            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(enteredData.getLat(), enteredData.getLon()), 12));
-            mMap.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
-                @Override
-                public void onMapLongClick(LatLng latLng) {
-                    mMap.addMarker(new MarkerOptions().position(latLng).title("New Marker"));
-                    double lat = latLng.latitude;
-                    double lon = latLng.longitude;
-                    FragmentTransaction trans = getFragmentManager().beginTransaction();
-                    EnterDataFragment enterDataFragment = EnterDataFragment.newInstance(lat,lon);
-                    trans.replace(R.id.layout_container, enterDataFragment, EnterDataFragment.TAG);
-                    trans.commit();
-                }
-            });
         }
     }
 
@@ -180,12 +147,9 @@ public class MapFragment extends com.google.android.gms.maps.MapFragment impleme
 
     @Override
     public void onInfoWindowClick(Marker marker) {
-
-
+        // Get extra data with marker ID
         EnteredData marker_data = mMarkers.get(marker.getId());
         getActivity().getIntent().putExtra("marker_data",marker_data);
-        // Get extra data with marker ID
-
         InfoViewFragment infoViewFragment = InfoViewFragment.newInstance();
         getFragmentManager().beginTransaction()
                 .replace(R.id.layout_container, infoViewFragment, InfoViewFragment.TAG)
@@ -201,20 +165,20 @@ public class MapFragment extends com.google.android.gms.maps.MapFragment impleme
     private class MarkerAdapter implements GoogleMap.InfoWindowAdapter {
 
         TextView mText;
-
         public MarkerAdapter() {
             mText = new TextView(getActivity());
         }
 
         @Override
         public View getInfoContents(Marker marker) {
+            mText.setBackgroundColor(Color.BLACK);
             mText.setText(marker.getTitle());
             return mText;
         }
 
         @Override
         public View getInfoWindow(Marker marker) {
-            mText.setBackgroundColor(Color.BLACK);
+
             return null;
         }
     }
@@ -222,13 +186,10 @@ public class MapFragment extends com.google.android.gms.maps.MapFragment impleme
     private void enableGps() {
         if(mManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             mManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 10, this);
-
             Location loc = mManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
             if(loc != null) {
                 enteredData.setLat(loc.getLatitude());
                 enteredData.setLon(loc.getLongitude());
-
-
             }
 
         } else {

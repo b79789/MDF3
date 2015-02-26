@@ -20,20 +20,15 @@ import android.app.Fragment;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.provider.Settings;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-
-import com.google.android.gms.maps.model.LatLng;
-
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Locale;
 
 
 public class EnterDataFragment extends Fragment implements LocationListener{
@@ -225,7 +220,7 @@ public class EnterDataFragment extends Fragment implements LocationListener{
                 .format(new Date(System.currentTimeMillis()));
         File imageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
         // Creating our own folder in the default directory.
-        File appDir = new File(imageDir, "CameraExample");
+        File appDir = new File(imageDir, "MappingPhotos");
         appDir.mkdirs();
         File image = new File(appDir, imageName + ".jpg");
         try {
